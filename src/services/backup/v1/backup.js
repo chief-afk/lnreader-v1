@@ -63,7 +63,7 @@ export const restoreBackup = async () => {
         taskIcon: { name: 'notification_icon', type: 'drawable' },
         color: '#00adb5',
         parameters: { delay: 1000 },
-        linkingURI: 'lnreader://updates',
+        linkingURI: 'lnreaderv1://updates',
         progressBar: { max: novels.length, value: 0 },
       };
 

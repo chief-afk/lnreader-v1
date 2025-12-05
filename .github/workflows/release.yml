@@ -1,14 +1,13 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    tags:
+      - 'v*'
 
 jobs:
-  build-android:
-    name: Build Android APK
+  release:
+    name: Create Release
     runs-on: ubuntu-latest
 
     steps:
@@ -39,8 +38,6 @@ jobs:
             ~/.gradle/wrapper
             ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
 
       - name: Make Gradlew Executable
         run: chmod +x android/gradlew
@@ -50,24 +47,36 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Get Version Info
+      - name: Get Version
         id: version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSION=${GITHUB_REF#refs/tags/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
       - name: Rename APK
         run: |
           cd android/app/build/outputs/apk/release
-          mv app-release.apk lnreader-v1-${{ steps.version.outputs.version }}-r${{ steps.version.outputs.commit_count }}.apk
+          mv app-release.apk lnreader-v1-${{ steps.version.outputs.version }}.apk
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: lnreader-v1-${{ steps.version.outputs.version }}-r${{ steps.version.outputs.commit_count }}
-          path: android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
+          files: android/app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          name: LNReader v1 ${{ steps.version.outputs.version }}
+          body: |
+            ## LNReader v1 ${{ steps.version.outputs.version }}
+
+            ### Installation
+
+            Download the APK below and install it on your Android device.
+
+            **Note**: You can install this alongside the official LNReader app.
+
+            ### Changes
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -68,6 +68,9 @@ buck-out/
 *.keystore
 !debug.keystore
 
+# Release keystore config (NEVER commit)
+android/keystore.properties
+
 # Bundle artifacts
 *.jsbundle
 

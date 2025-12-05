@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.rajarsheechatterjee.LNReader">
+	package="com.chief.lnreader.v1">
 
 	<!-- Internet -->
 	<uses-permission android:name="android.permission.INTERNET" />
@@ -64,8 +64,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="lnreader" />
-				<data android:scheme="com.rajarsheechatterjee.LNReader" />
+				<data android:scheme="lnreaderv1" />
+				<data android:scheme="com.chief.lnreader.v1" />
 			</intent-filter>
 		</activity>
 

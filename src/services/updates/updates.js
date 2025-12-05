@@ -30,7 +30,7 @@ const updateLibrary = async options => {
     taskIcon: { name: 'notification_icon', type: 'drawable' },
     color: '#00adb5',
     parameters: { delay: 1000 },
-    linkingURI: 'lnreader://updates',
+    linkingURI: 'lnreaderv1://updates',
     progressBar: { max: libraryNovels.length, value: 0 },
   };
 
