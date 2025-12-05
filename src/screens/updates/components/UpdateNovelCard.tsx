@@ -2,7 +2,7 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import React, { useCallback, useState } from 'react';
 
 import { ChapterItemExtended, Update } from '../../../database/types';
-import FastImage from 'react-native-fast-image';
+import FastImage from '@d11/react-native-fast-image';
 import { List } from 'react-native-paper';
 import { coverPlaceholderColor } from '../../../theme/colors';
 import {

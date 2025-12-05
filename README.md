@@ -2,7 +2,7 @@
 
 An unofficial fork of LNReader maintaining the v1 architecture with selective improvements.
 
-## ⚠️ No Support
+## NO SUPPORT
 
 This fork is maintained independently. **No support or assistance will be provided.**
 

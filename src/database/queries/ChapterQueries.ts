@@ -1,37 +1,31 @@
-import * as SQLite from 'expo-sqlite';
 import { showToast } from '../../hooks/showToast';
 import { sourceManager } from '../../sources/sourceManager';
-import { ChapterItem } from '../types';
+import { ChapterItem, DownloadedChapter } from '../types';
+import { db } from '../db';
 
 import * as cheerio from 'cheerio';
-import RNFetchBlob from 'rn-fetch-blob';
-import { txnErrorCallback } from '@database/utils/helpers';
-
-const db = SQLite.openDatabase('lnreader.db');
+import RNFetchBlob from 'react-native-blob-util';
 
 const insertChaptersQuery = `
 INSERT INTO chapters (
-  chapterUrl, chapterName, releaseDate, 
+  chapterUrl, chapterName, releaseDate,
   novelId
-) 
-values 
+)
+values
   (?, ?, ?, ?)
 `;
 
-export const insertChapters = async (
-  novelId: number,
-  chapters?: ChapterItem[],
-) => {
+export const insertChapters = (novelId: number, chapters?: ChapterItem[]) => {
   if (!chapters?.length) {
     return;
   }
 
-  db.transaction(tx => {
-    chapters.map(chapter =>
-      tx.executeSql(insertChaptersQuery, [
+  db.withTransactionSync(() => {
+    chapters.forEach(chapter =>
+      db.runSync(insertChaptersQuery, [
         chapter.chapterUrl,
         chapter.chapterName,
-        chapter.releaseDate,
+        chapter.releaseDate || '',
         novelId,
       ]),
     );
@@ -41,194 +35,85 @@ export const insertChapters = async (
 const getChaptersQuery = (sort = 'ORDER BY chapterId ASC', filter = '') =>
   `SELECT * FROM chapters WHERE novelId = ? ${filter} ${sort}`;
 
-export const getChapters = (novelId: number, sort: string, filter: string) => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        getChaptersQuery(sort, filter),
-        [novelId],
-        (txObj, { rows }) => {
-          const _array = (rows as any)._array;
-          resolve(_array);
-        },
-        txnErrorCallback,
-      );
-    }),
-  );
+export const getChapters = (
+  novelId: number,
+  sort: string,
+  filter: string,
+): ChapterItem[] => {
+  return db.getAllSync<ChapterItem>(getChaptersQuery(sort, filter), [novelId]);
 };
 
 const getChapterQuery = 'SELECT * FROM downloads WHERE downloadChapterId = ?';
 
-export const getChapterFromDB = async (chapterId: number) => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        getChapterQuery,
-        [chapterId],
-        (txObj, results) => {
-          resolve(results.rows.item(0));
-        },
-        (_txObj, _error) => {
-          // console.log('Error ', error)
-          return false;
-        },
-      );
-    }),
-  );
+export const getChapterFromDB = (
+  chapterId: number,
+): DownloadedChapter | null => {
+  return db.getFirstSync<DownloadedChapter>(getChapterQuery, [chapterId]);
 };
 
 const getPrevChapterQuery = `
-  SELECT
-    *
-  FROM
-    chapters
-  WHERE
-    novelId = ?
-  AND
-    chapterId < ?
-  `;
+  SELECT * FROM chapters WHERE novelId = ? AND chapterId < ?
+`;
 
 export const getPrevChapter = (
   novelId: number,
   chapterId: number,
-): Promise<ChapterItem> => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        getPrevChapterQuery,
-        [novelId, chapterId],
-        (_txObj, results) =>
-          resolve(results.rows.item(results.rows.length - 1)),
-        (_txObj, error) => {
-          showToast(error.message);
-          return false;
-        },
-      );
-    }),
-  );
+): ChapterItem | null => {
+  const chapters = db.getAllSync<ChapterItem>(getPrevChapterQuery, [
+    novelId,
+    chapterId,
+  ]);
+  return chapters.length > 0 ? chapters[chapters.length - 1] : null;
 };
 
 const getNextChapterQuery = `
-  SELECT
-    *
-  FROM
-    chapters
-  WHERE
-    novelId = ?
-  AND
-  chapterId > ?
-  `;
+  SELECT * FROM chapters WHERE novelId = ? AND chapterId > ?
+`;
 
 export const getNextChapter = (
   novelId: number,
   chapterId: number,
-): Promise<ChapterItem> => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        getNextChapterQuery,
-        [novelId, chapterId],
-        (_txObj, results) => resolve(results.rows.item(0)),
-        (_txObj, error) => {
-          showToast(error.message);
-          return false;
-        },
-      );
-    }),
-  );
+): ChapterItem | null => {
+  return db.getFirstSync<ChapterItem>(getNextChapterQuery, [
+    novelId,
+    chapterId,
+  ]);
 };
 
 const markChapterReadQuery =
   'UPDATE chapters SET `read` = 1 WHERE chapterId = ?';
 
-export const markChapterRead = async (chapterId: number) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markChapterReadQuery,
-      [chapterId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+export const markChapterRead = (chapterId: number) => {
+  db.runSync(markChapterReadQuery, [chapterId]);
 };
 
 const markChapterUnreadQuery =
   'UPDATE chapters SET `read` = 0 WHERE chapterId = ?';
 
-export const markChapterUnread = async (chapterId: number) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markChapterUnreadQuery,
-      [chapterId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+export const markChapterUnread = (chapterId: number) => {
+  db.runSync(markChapterUnreadQuery, [chapterId]);
 };
 
 const markAllChaptersReadQuery =
   'UPDATE chapters SET `read` = 1 WHERE novelId = ?';
 
-export const markAllChaptersRead = async (novelId: number) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markAllChaptersReadQuery,
-      [novelId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+export const markAllChaptersRead = (novelId: number) => {
+  db.runSync(markAllChaptersReadQuery, [novelId]);
 };
 
 const markAllChaptersUnreadQuery =
   'UPDATE chapters SET `read` = 0 WHERE novelId = ?';
 
-export const markAllChaptersUnread = async (novelId: number) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markAllChaptersUnreadQuery,
-      [novelId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+export const markAllChaptersUnread = (novelId: number) => {
+  db.runSync(markAllChaptersUnreadQuery, [novelId]);
 };
 
 const isChapterDownloadedQuery =
   'SELECT * FROM downloads WHERE downloadChapterId=?';
 
-export const isChapterDownloaded = async (chapterId: number) => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        isChapterDownloadedQuery,
-        [chapterId],
-        (txObj, res) => {
-          if (res.rows.length !== 0) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        },
-        (_txObj, _error) => {
-          // console.log('Error ', error)
-          return false;
-        },
-      );
-    }),
-  );
+export const isChapterDownloaded = (chapterId: number): boolean => {
+  const result = db.getFirstSync(isChapterDownloadedQuery, [chapterId]);
+  return result !== null;
 };
 
 const downloadChapterQuery =
@@ -319,7 +204,7 @@ const downloadImages = async (
     }
     loadedCheerio('body').prepend("<input type='hidden' offline />");
     return loadedCheerio.html();
-  } catch (e) {
+  } catch {
     return html;
   }
 };
@@ -331,41 +216,30 @@ export const downloadChapter = async (
   chapterUrl: string,
   chapterId: number,
 ) => {
-  try {
-    const source = sourceManager(sourceId);
+  const source = sourceManager(sourceId);
+  const chapter = await source.parseChapter(novelUrl, chapterUrl);
 
-    const chapter = await source.parseChapter(novelUrl, chapterUrl);
-
-    if (chapter.chapterText?.length) {
-      const imagedChapterText =
-        chapter.chapterText &&
-        (await downloadImages(
-          chapter.chapterText,
-          sourceId,
-          novelId,
-          chapterId,
-        ));
-
-      db.transaction(tx => {
-        tx.executeSql(
-          'UPDATE chapters SET downloaded = 1 WHERE chapterId = ?',
-          [chapterId],
-        );
-        tx.executeSql(
-          downloadChapterQuery,
-          [chapterId, chapter.chapterName, imagedChapterText],
-          (_txObj, _res) => {
-            return true;
-          },
-          txnErrorCallback,
-        );
-      });
-    } else {
-      throw new Error("Either chapter is empty or the app couldn't scrape it");
-    }
-  } catch (error) {
-    throw error;
+  if (!chapter.chapterText?.length) {
+    throw new Error("Either chapter is empty or the app couldn't scrape it");
   }
+
+  const imagedChapterText = await downloadImages(
+    chapter.chapterText,
+    sourceId,
+    novelId,
+    chapterId,
+  );
+
+  db.withTransactionSync(() => {
+    db.runSync('UPDATE chapters SET downloaded = 1 WHERE chapterId = ?', [
+      chapterId,
+    ]);
+    db.runSync(downloadChapterQuery, [
+      chapterId,
+      chapter.chapterName || '',
+      imagedChapterText,
+    ]);
+  });
 };
 
 const deleteDownloadedImages = async (
@@ -387,7 +261,7 @@ const deleteDownloadedImages = async (
         }
       }
     }
-  } catch (error) {}
+  } catch {}
 };
 
 export const deleteChapter = async (
@@ -395,33 +269,13 @@ export const deleteChapter = async (
   novelId: number,
   chapterId: number,
 ) => {
-  const updateIsDownloadedQuery =
-    'UPDATE chapters SET downloaded = 0 WHERE chapterId=?';
-  const deleteChapterQuery = 'DELETE FROM downloads WHERE downloadChapterId=?';
-
   await deleteDownloadedImages(sourceId, novelId, chapterId);
 
-  db.transaction(tx => {
-    tx.executeSql(
-      updateIsDownloadedQuery,
-      [chapterId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log('Error ', error)
-        return false;
-      },
-    );
-    tx.executeSql(
-      deleteChapterQuery,
-      [chapterId],
-      (_txObj, _res) => {
-        // console.log('Chapter deleted');
-      },
-      (_txObj, _error) => {
-        // console.log('Error ', error)
-        return false;
-      },
-    );
+  db.withTransactionSync(() => {
+    db.runSync('UPDATE chapters SET downloaded = 0 WHERE chapterId=?', [
+      chapterId,
+    ]);
+    db.runSync('DELETE FROM downloads WHERE downloadChapterId=?', [chapterId]);
   });
 };
 
@@ -434,155 +288,82 @@ export const deleteChapters = async (
   }
 
   const chapterIdsString = chapters
-    ?.map(chapter => chapter.chapterId)
+    .map(chapter => chapter.chapterId)
     .toString();
 
-  const updateIsDownloadedQuery = `UPDATE chapters SET downloaded = 0 WHERE chapterId IN (${chapterIdsString})`;
-  const deleteChapterQuery = `DELETE FROM downloads WHERE downloadChapterId IN (${chapterIdsString})`;
-
   await Promise.all(
-    chapters?.map(chapter =>
+    chapters.map(chapter =>
       deleteDownloadedImages(sourceId, chapter.novelId, chapter.chapterId),
     ),
   );
 
-  db.transaction(tx => {
-    tx.executeSql(
-      updateIsDownloadedQuery,
-      undefined,
-      undefined,
-      txnErrorCallback,
+  db.withTransactionSync(() => {
+    db.runSync(
+      `UPDATE chapters SET downloaded = 0 WHERE chapterId IN (${chapterIdsString})`,
     );
-    tx.executeSql(deleteChapterQuery, undefined, undefined, txnErrorCallback);
+    db.runSync(
+      `DELETE FROM downloads WHERE downloadChapterId IN (${chapterIdsString})`,
+    );
   });
 };
 
 const getLastReadChapterQuery = `
-    SELECT chapters.*
-    FROM history
-    JOIN chapters
-    ON history.historyChapterId = chapters.chapterId
-    WHERE history.historyNovelId = ?
+  SELECT chapters.*
+  FROM history
+  JOIN chapters ON history.historyChapterId = chapters.chapterId
+  WHERE history.historyNovelId = ?
 `;
 
-export const getLastReadChapter = async (novelId: number) => {
-  return new Promise(resolve => {
-    db.transaction(tx => {
-      tx.executeSql(
-        getLastReadChapterQuery,
-        [novelId],
-        (txObj, { rows }) => resolve(rows.item(0)),
-        (_txObj, _error) => {
-          // console.log('Error ', error)
-          return false;
-        },
-      );
-    });
-  });
+export const getLastReadChapter = (novelId: number): ChapterItem | null => {
+  return db.getFirstSync<ChapterItem>(getLastReadChapterQuery, [novelId]);
 };
 
 const bookmarkChapterQuery =
   'UPDATE chapters SET bookmark = ? WHERE chapterId = ?';
 
-export const bookmarkChapter = async (bookmark: boolean, chapterId: number) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      bookmarkChapterQuery,
-      [!bookmark, chapterId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log('Error ', error)
-        return false;
-      },
-    );
-  });
+export const bookmarkChapter = (bookmark: boolean, chapterId: number) => {
+  db.runSync(bookmarkChapterQuery, [!bookmark ? 1 : 0, chapterId]);
 };
 
 const markPreviuschaptersReadQuery =
   'UPDATE chapters SET `read` = 1 WHERE chapterId < ? AND novelId = ?';
 
-export const markPreviuschaptersRead = async (
-  chapterId: number,
-  novelId: number,
-) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markPreviuschaptersReadQuery,
-      [chapterId, novelId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+export const markPreviuschaptersRead = (chapterId: number, novelId: number) => {
+  db.runSync(markPreviuschaptersReadQuery, [chapterId, novelId]);
 };
 
 const markPreviousChaptersUnreadQuery =
   'UPDATE chapters SET `read` = 0 WHERE chapterId < ? AND novelId = ?';
 
-export const markPreviousChaptersUnread = async (
+export const markPreviousChaptersUnread = (
   chapterId: number,
   novelId: number,
 ) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      markPreviousChaptersUnreadQuery,
-      [chapterId, novelId],
-      (_txObj, _res) => {},
-      (_txObj, _error) => {
-        // console.log(error)
-        return false;
-      },
-    );
-  });
+  db.runSync(markPreviousChaptersUnreadQuery, [chapterId, novelId]);
 };
 
 const getDownloadedChaptersQuery = `
-    SELECT chapters.*, novels.sourceId, novels.novelName, novels.novelCover, novels.novelUrl
-    FROM chapters
-    JOIN novels
-    ON chapters.novelId = novels.novelId
-    WHERE chapters.downloaded = 1`;
+  SELECT chapters.*, novels.sourceId, novels.novelName, novels.novelCover, novels.novelUrl
+  FROM chapters
+  JOIN novels ON chapters.novelId = novels.novelId
+  WHERE chapters.downloaded = 1
+`;
 
 export const getDownloadedChapters = () => {
-  return new Promise(resolve =>
-    db.transaction(tx => {
-      tx.executeSql(
-        getDownloadedChaptersQuery,
-        undefined,
-        (txObj, { rows }) => {
-          const _array = (rows as any)._array;
-          resolve(_array);
-        },
-        (_txObj, _error) => {
-          // console.log('Error ', error)
-          return false;
-        },
-      );
-    }),
-  );
+  return db.getAllSync(getDownloadedChaptersQuery);
 };
 
-export const deleteDownloads = async () => {
-  db.transaction(tx => {
-    tx.executeSql('UPDATE chapters SET downloaded = 0');
-    tx.executeSql('DELETE FROM downloads; VACCUM;');
+export const deleteDownloads = () => {
+  db.withTransactionSync(() => {
+    db.runSync('UPDATE chapters SET downloaded = 0');
+    db.runSync('DELETE FROM downloads');
   });
 };
 
 export const updateChapterDownloadedQuery = `
-  UPDATE 
-    chapters 
-  SET 
-    downloaded = 1
-  WHERE 
-    chapterId = ?`;
+  UPDATE chapters SET downloaded = 1 WHERE chapterId = ?
+`;
 
 export const updateChapterDeletedQuery = `
-  UPDATE 
-    chapters 
-  SET 
-    downloaded = 0
-  WHERE 
-    chapterId = ?`;
+  UPDATE chapters SET downloaded = 0 WHERE chapterId = ?
+`;

@@ -1,63 +1,43 @@
-import { noop, xor } from 'lodash-es';
+import { xor } from 'lodash-es';
 
-import * as SQLite from 'expo-sqlite';
-const db = SQLite.openDatabase('lnreader.db');
-
-import { txnErrorCallback } from '../utils/helpers';
+import { db } from '../db';
 import { LibraryNovelInfo } from '../types';
 import { fetchNovel } from '../../services/Source/source';
 import { showToast } from '@hooks/showToast';
 import { getString } from '@strings/translations';
 import { checkNovelInCache } from './NovelQueries';
 
-export const getCategoryNovelsFromDb = async (
+export const getCategoryNovelsFromDb = (
   categoryId: number,
   onlyOngoingNovels?: boolean,
-): Promise<LibraryNovelInfo[]> => {
+): LibraryNovelInfo[] => {
   let query = `
-  SELECT 
-    * 
-  FROM 
-    novels 
-  WHERE (
-      categoryIds LIKE '[${categoryId}]' 
-    OR 
-      categoryIds LIKE '[${categoryId},%' 
-    OR 
-      categoryIds LIKE '%,${categoryId}]' 
-    OR 
-      categoryIds LIKE '%,${categoryId},%'
+    SELECT * FROM novels
+    WHERE (
+      categoryIds LIKE '[${categoryId}]'
+      OR categoryIds LIKE '[${categoryId},%'
+      OR categoryIds LIKE '%,${categoryId}]'
+      OR categoryIds LIKE '%,${categoryId},%'
     )
-    AND
-      followed = 1
+    AND followed = 1
   `;
 
   if (onlyOngoingNovels) {
     query += ' AND status NOT LIKE "Completed"';
   }
 
-  return new Promise(resolve => {
-    db.transaction(tx => {
-      tx.executeSql(
-        query,
-        undefined,
-        (txObj, { rows }) => resolve((rows as any)._array),
-        txnErrorCallback,
-      );
-    });
-  });
+  return db.getAllSync<LibraryNovelInfo>(query);
 };
 
-export const resetCategoryIdsToDefault = async (deletedCategoryId: number) => {
-  const categoryNovels = await getCategoryNovelsFromDb(deletedCategoryId);
+export const resetCategoryIdsToDefault = (deletedCategoryId: number) => {
+  const categoryNovels = getCategoryNovelsFromDb(deletedCategoryId);
 
-  db.transaction(tx => {
+  db.withTransactionSync(() => {
     categoryNovels.forEach(novel => {
       let categoryIds = xor(JSON.parse(novel.categoryIds), [deletedCategoryId]);
-
       categoryIds = categoryIds.length ? categoryIds : [1];
 
-      tx.executeSql('UPDATE novels SET categoryIds = ? WHERE novelId = ?', [
+      db.runSync('UPDATE novels SET categoryIds = ? WHERE novelId = ?', [
         JSON.stringify(categoryIds),
         novel.novelId,
       ]);
@@ -73,133 +53,86 @@ export const insertNovelInLibrary = async (
 ) => {
   if (inLibrary) {
     showToast(getString('browseScreen.removeFromLibrary'));
-
-    db.transaction(tx => {
-      tx.executeSql(
-        `
-      UPDATE novels SET
-        followed = 0
-      WHERE 
-        sourceId = ?
-      AND
-        novelUrl = ?
-      `,
-        [sourceId, novelUrl],
-        noop,
-        txnErrorCallback,
-      );
-    });
-  } else {
-    showToast(getString('browseScreen.addedToLibrary'));
-
-    const novelSavedInDb = await checkNovelInCache(novelUrl);
-
-    if (novelSavedInDb) {
-      db.transaction(tx => {
-        tx.executeSql(
-          `
-        UPDATE novels SET
-          followed = 1
-        WHERE 
-          sourceId = ?
-        AND
-          novelUrl = ?
-        `,
-          [sourceId, novelUrl],
-          noop,
-          txnErrorCallback,
-        );
-      });
-
-      return;
-    }
-
-    const novel = await fetchNovel(sourceId, novelUrl);
-
-    db.transaction(tx => {
-      tx.executeSql(
-        `
-      INSERT INTO novels 
-        (
-          novelUrl, 
-          sourceUrl, 
-          sourceId, 
-          source, 
-          novelName, 
-          novelCover, 
-          novelSummary, 
-          author, 
-          artist, 
-          status, 
-          genre, 
-          followed,
-          categoryIds
-        ) 
-      VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
-        [
-          novel.novelUrl,
-          novel.sourceUrl,
-          novel.sourceId,
-          novel.source,
-          novel.novelName,
-          novel.novelCover,
-          novel.novelSummary,
-          novel.author,
-          novel.artist,
-          novel.status,
-          novel.genre,
-          JSON.stringify([defaultCategoryId]),
-        ],
-        (txObj, { insertId }) => {
-          novel.chapters?.map(chapter => {
-            tx.executeSql(
-              `
-          INSERT INTO chapters 
-            (chapterUrl, chapterName, releaseDate, novelId) 
-          VALUES 
-            (?, ?, ?, ?)`,
-              [
-                chapter.chapterUrl,
-                chapter.chapterName,
-                chapter.releaseDate,
-                insertId,
-              ],
-            );
-          });
-        },
-        txnErrorCallback,
-      );
-    });
-  }
-};
-
-export const updateNovelCategoryById = async (
-  novelId: number,
-  categoryIds: number[],
-) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      'UPDATE novels SET categoryIds = ? WHERE novelId = ?',
-      [JSON.stringify(categoryIds.length ? categoryIds : [1]), novelId],
-      noop,
-      txnErrorCallback,
+    db.runSync(
+      'UPDATE novels SET followed = 0 WHERE sourceId = ? AND novelUrl = ?',
+      [sourceId, novelUrl],
     );
+    return;
+  }
+
+  showToast(getString('browseScreen.addedToLibrary'));
+
+  const novelSavedInDb = checkNovelInCache(novelUrl);
+
+  if (novelSavedInDb) {
+    db.runSync(
+      'UPDATE novels SET followed = 1 WHERE sourceId = ? AND novelUrl = ?',
+      [sourceId, novelUrl],
+    );
+    return;
+  }
+
+  const novel = await fetchNovel(sourceId, novelUrl);
+
+  db.withTransactionSync(() => {
+    const result = db.runSync(
+      `INSERT INTO novels
+        (novelUrl, sourceUrl, sourceId, source, novelName, novelCover,
+         novelSummary, author, artist, status, genre, followed, categoryIds)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+      [
+        novel.novelUrl,
+        novel.sourceUrl,
+        novel.sourceId,
+        novel.source,
+        novel.novelName,
+        novel.novelCover,
+        novel.novelSummary,
+        novel.author,
+        novel.artist,
+        novel.status,
+        novel.genre,
+        JSON.stringify([defaultCategoryId]),
+      ],
+    );
+
+    const insertId = result.lastInsertRowId;
+
+    novel.chapters?.forEach(chapter => {
+      db.runSync(
+        `INSERT INTO chapters (chapterUrl, chapterName, releaseDate, novelId)
+         VALUES (?, ?, ?, ?)`,
+        [
+          chapter.chapterUrl,
+          chapter.chapterName,
+          chapter.releaseDate || '',
+          insertId,
+        ],
+      );
+    });
   });
 };
 
-export const updateNovelCategoryByIds = async (
+export const updateNovelCategoryById = (
+  novelId: number,
+  categoryIds: number[],
+) => {
+  db.runSync('UPDATE novels SET categoryIds = ? WHERE novelId = ?', [
+    JSON.stringify(categoryIds.length ? categoryIds : [1]),
+    novelId,
+  ]);
+};
+
+export const updateNovelCategoryByIds = (
   novelIds: number[],
   categoryIds: number[],
 ) => {
-  db.transaction(tx => {
-    novelIds.map(novelId =>
-      tx.executeSql(
-        'UPDATE novels SET categoryIds = ? WHERE novelId = ?',
-        [JSON.stringify(categoryIds.length ? categoryIds : [1]), novelId],
-        noop,
-        txnErrorCallback,
-      ),
+  db.withTransactionSync(() => {
+    novelIds.forEach(novelId =>
+      db.runSync('UPDATE novels SET categoryIds = ? WHERE novelId = ?', [
+        JSON.stringify(categoryIds.length ? categoryIds : [1]),
+        novelId,
+      ]),
     );
   });
 };

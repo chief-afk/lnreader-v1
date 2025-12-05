@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import color from 'color';
 
-import Clipboard from '@react-native-community/clipboard';
+import * as Clipboard from 'expo-clipboard';
 
 import { IconButton } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -88,7 +88,7 @@ const NovelInfoHeader = ({
                 })
               }
               onLongPress={() => {
-                Clipboard.setString(item.novelName);
+                Clipboard.setStringAsync(item.novelName);
                 showToast('Copied to clipboard: ' + item.novelName);
               }}
             >

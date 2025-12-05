@@ -25,7 +25,7 @@ const CategoriesScreen = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>();
-  const [error, setError] = useState();
+  const [_error, setError] = useState();
 
   const getCategories = async () => {
     try {
@@ -33,8 +33,8 @@ const CategoriesScreen = () => {
       res.shift();
 
       setCategories(res);
-    } catch (err) {
-      setError(error?.message);
+    } catch (err: any) {
+      setError(err?.message);
     } finally {
       setIsLoading(false);
     }

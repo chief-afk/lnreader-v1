@@ -49,6 +49,13 @@ local.properties
 *.iml
 *.hprof
 
+# Android native build artifacts
+android/app/.cxx/
+android/.cxx/
+.cxx/
+*.so
+android/app/build/
+
 # node.js
 #
 node_modules/

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 
-import FastImage from 'react-native-fast-image';
+import FastImage from '@d11/react-native-fast-image';
 import { coverPlaceholderColor } from '../theme/colors';
 
 import { defaultUserAgentString } from '@utils/fetch/fetch';

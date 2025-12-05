@@ -1,21 +1,29 @@
 import { getNovel } from '@database/queries/NovelQueries';
 import { insertNovelInLibrary } from '@database/queries/NovelQueriesV2';
-import { NativeModules } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import RNFS from 'react-native-fs';
+import { parseEpub } from '@services/epub';
 
-const { EpubParser } = NativeModules;
 const epubSourceId = 0;
 
-interface EpubParserInterface {
-  openDirectory(): Promise<string>;
-}
-
 export async function openDirectory() {
-  const ParserInterface = EpubParser as EpubParserInterface;
-  const epubPath = await ParserInterface.openDirectory();
+  const result = await DocumentPicker.getDocumentAsync({
+    type: 'application/epub+zip',
+    copyToCacheDirectory: true,
+  });
 
-  let dbNovel = await getNovel(epubSourceId, epubPath);
+  if (result.canceled || !result.assets?.[0]) {
+    return;
+  }
+
+  const epubFilePath = result.assets[0].uri;
+
+  // Parse the EPUB using JavaScript
+  const destDir = `${RNFS.DocumentDirectoryPath}/`;
+  const savePath = await parseEpub(epubFilePath, destDir);
+
+  const dbNovel = await getNovel(epubSourceId, savePath);
   if (dbNovel === undefined || dbNovel.followed === 0) {
-    // Insert novel if it doesn't exist in the database
-    await insertNovelInLibrary(epubSourceId, epubPath, false, 1);
+    await insertNovelInLibrary(epubSourceId, savePath, false, 1);
   }
 }

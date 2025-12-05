@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dimensions, StatusBar } from 'react-native';
 import WebView, { WebViewProps } from 'react-native-webview';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 import isEqual from 'react-fast-compare';
 
 import { useTheme } from '@hooks/useTheme';

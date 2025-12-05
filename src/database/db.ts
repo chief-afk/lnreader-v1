@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite';
+import { openDatabaseSync, SQLiteDatabase } from 'expo-sqlite';
 import {
   createNovelTableQuery,
   createUrlIndexQuery,
@@ -25,60 +25,44 @@ import {
   createCategorydIndexQuery,
   createDefaultCategoryQuery,
 } from './tables/CategoryTable';
-import {
-  dbTxnErrorCallback,
-  txnErrorCallbackWithoutToast,
-} from './utils/helpers';
-import { noop } from 'lodash-es';
 
 const dbName = 'lnreader.db';
 
-const db = SQLite.openDatabase(dbName);
+export const db: SQLiteDatabase = openDatabaseSync(dbName);
 
 const createTables = () => {
-  db.transaction(tx => {
-    tx.executeSql(createCategoriesTableQuery, [], () => {
-      tx.executeSql(
-        addCategorySortColumnQuery,
-        undefined,
-        noop,
-        txnErrorCallbackWithoutToast,
-      );
-      tx.executeSql(
-        createDefaultCategoryQuery,
-        undefined,
-        noop,
-        txnErrorCallbackWithoutToast,
-      );
-    });
-    tx.executeSql(createNovelTableQuery, [], () => {
-      tx.executeSql(
-        addCategoryColumnQuery,
-        undefined,
-        noop,
-        txnErrorCallbackWithoutToast,
-      );
-    });
-    tx.executeSql(createChapterTableQuery);
-    tx.executeSql(createHistoryTableQuery);
-    tx.executeSql(createDownloadTableQuery);
-    tx.executeSql(createUpdatesTableQuery);
+  db.withTransactionSync(() => {
+    db.runSync(createCategoriesTableQuery);
+    try {
+      db.runSync(addCategorySortColumnQuery);
+    } catch {}
+    try {
+      db.runSync(createDefaultCategoryQuery);
+    } catch {}
+    db.runSync(createNovelTableQuery);
+    try {
+      db.runSync(addCategoryColumnQuery);
+    } catch {}
+    db.runSync(createChapterTableQuery);
+    db.runSync(createHistoryTableQuery);
+    db.runSync(createDownloadTableQuery);
+    db.runSync(createUpdatesTableQuery);
   });
 };
 
 const createIndexes = () => {
-  db.transaction(tx => {
-    tx.executeSql(createUrlIndexQuery);
-    tx.executeSql(createLibraryIndexQuery);
-    tx.executeSql(createNovelIdIndexQuery);
-    tx.executeSql(createUnreadChaptersIndexQuery);
-    tx.executeSql(createChapterIdIndexQuery);
-    tx.executeSql(createCategorydIndexQuery);
-    tx.executeSql(createDownloadIdIndex);
+  db.withTransactionSync(() => {
+    db.runSync(createUrlIndexQuery);
+    db.runSync(createLibraryIndexQuery);
+    db.runSync(createNovelIdIndexQuery);
+    db.runSync(createUnreadChaptersIndexQuery);
+    db.runSync(createChapterIdIndexQuery);
+    db.runSync(createCategorydIndexQuery);
+    db.runSync(createDownloadIdIndex);
   });
 };
 
-export const createDatabase = async () => {
+export const createDatabase = () => {
   createTables();
   createIndexes();
 };
@@ -87,16 +71,12 @@ export const createDatabase = async () => {
  * For Testing
  */
 export const deleteDatabase = () => {
-  db.transaction(
-    tx => {
-      tx.executeSql('DROP TABLE novels');
-      tx.executeSql('DROP TABLE chapters');
-      tx.executeSql('DROP TABLE history');
-      tx.executeSql('DROP TABLE downloads');
-      tx.executeSql('DROP TABLE updates');
-      tx.executeSql('DROP TABLE categories');
-    },
-    dbTxnErrorCallback,
-    noop,
-  );
+  db.withTransactionSync(() => {
+    db.runSync('DROP TABLE IF EXISTS novels');
+    db.runSync('DROP TABLE IF EXISTS chapters');
+    db.runSync('DROP TABLE IF EXISTS history');
+    db.runSync('DROP TABLE IF EXISTS downloads');
+    db.runSync('DROP TABLE IF EXISTS updates');
+    db.runSync('DROP TABLE IF EXISTS categories');
+  });
 };
