@@ -42,6 +42,17 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x android/gradlew
 
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/lnreader-v1-release.keystore
+
+      - name: Create keystore.properties
+        run: |
+          echo "storeFile=app/lnreader-v1-release.keystore" > android/keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/keystore.properties
+
       - name: Build Release APK
         run: |
           cd android

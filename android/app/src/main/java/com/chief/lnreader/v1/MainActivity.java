@@ -1,4 +1,4 @@
-package com.rajarsheechatterjee.LNReader;
+package com.chief.lnreader.v1;
 
 import android.graphics.Color;
 import android.os.Build;
@@ -13,7 +13,6 @@ import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
-import com.rajarsheechatterjee.VolumeButtonListener.VolumeButtonListener;
 
 import org.devio.rn.splashscreen.SplashScreen;
 

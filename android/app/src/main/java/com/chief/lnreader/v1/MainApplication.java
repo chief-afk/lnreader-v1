@@ -1,4 +1,4 @@
-package com.rajarsheechatterjee.LNReader;
+package com.chief.lnreader.v1;
 
 import android.app.Application;
 import android.content.res.Configuration;
@@ -9,7 +9,6 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.rajarsheechatterjee.VolumeButtonListener.VolumeButtonListenerPackage;
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
 
@@ -28,7 +27,7 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
           @SuppressWarnings("UnnecessaryLocalVariable")
           List<ReactPackage> packages = new PackageList(this).getPackages();
-          packages.add(new com.rajarsheechatterjee.LNReader.NavigationBarColorPackage());
+          packages.add(new NavigationBarColorPackage());
           packages.add(new VolumeButtonListenerPackage());
           return packages;
         }

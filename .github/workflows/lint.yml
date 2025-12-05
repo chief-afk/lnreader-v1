@@ -1,4 +1,5 @@
-name: CI
+name: Lint
+
 on:
   push:
     branches:
@@ -8,12 +9,20 @@ on:
       - main
 
 jobs:
-  build:
+  lint:
     name: ESLint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install modules
-        run: npm i
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
       - name: Run ESLint
         run: npm run lint

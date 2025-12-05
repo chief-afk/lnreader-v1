@@ -1,4 +1,4 @@
-package com.rajarsheechatterjee.LNReader;
+package com.chief.lnreader.v1;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
