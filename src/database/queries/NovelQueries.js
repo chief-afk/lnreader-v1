@@ -54,7 +54,18 @@ export const deleteNovelCache = () => {
 };
 
 const restoreFromBackupQuery =
-  'INSERT INTO novels (novelUrl, sourceUrl, sourceId, source, novelName, novelCover, novelSummary, author, artist, status, genre, followed, unread) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  'INSERT INTO novels (novelUrl, sourceUrl, sourceId, source, novelName, novelCover, novelSummary, author, artist, status, genre, followed, unread, categoryIds) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+const sanitizeCategoryIds = raw => {
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length
+      ? JSON.stringify(parsed)
+      : '[1]';
+  } catch {
+    return '[1]';
+  }
+};
 
 export const restoreLibrary = async novel => {
   const result = db.runSync(restoreFromBackupQuery, [
@@ -71,6 +82,7 @@ export const restoreLibrary = async novel => {
     novel.genre,
     novel.followed,
     novel.unread,
+    sanitizeCategoryIds(novel.categoryIds),
   ]);
 
   const insertId = result.lastInsertRowId;

@@ -10,7 +10,7 @@ import { useNovel, useSettings, usePreferences } from '@hooks/reduxHooks';
 import { useDispatch } from 'react-redux';
 import { setNovel, getNovelAction } from '@redux/novel/novel.actions';
 
-const ChapterDrawer = ({ state: st, navigation }) => {
+const ChapterDrawer = ({ params, navigation, onClose }) => {
   const theme = useTheme();
   const styles = createStylesheet(theme);
   let listRef = useRef();
@@ -22,7 +22,7 @@ const ChapterDrawer = ({ state: st, navigation }) => {
     novelName,
     novelId,
     chapterId: currentChapterId,
-  } = st.routes[0].params;
+  } = params;
   const { defaultChapterSort = 'ORDER BY chapterId ASC' } = useSettings();
   const { sort = defaultChapterSort, filter = '' } = usePreferences(novelId);
   const { chapters, novel } = useNovel();
@@ -76,6 +76,7 @@ const ChapterDrawer = ({ state: st, navigation }) => {
   });
 
   const changeChapter = item => {
+    onClose();
     navigation.replace('Chapter', {
       sourceId,
       novelUrl,
