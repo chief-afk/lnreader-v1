@@ -3,6 +3,7 @@ import React from 'react';
 import { ScreenContainer } from '../../components/Common';
 
 import { createBackup, restoreBackup } from '../../services/backup/v1/backup';
+import { importLegacyDatabase } from '../../services/backup/v1/dbImport';
 
 import { useTheme } from '@hooks/useTheme';
 import { Appbar, List } from '@components';
@@ -39,6 +40,22 @@ const BackupSettings = ({ navigation }) => {
           />
           <List.InfoItem
             title="Create backup may not work on devices with Android 9 or lower."
+            icon="information-outline"
+            theme={theme}
+          />
+        </List.Section>
+        <List.Section>
+          <List.SubHeader theme={theme}>
+            Migrate from official LNReader v1
+          </List.SubHeader>
+          <List.Item
+            title="Import old app database"
+            description="Pick the old app's lnreader.db to also restore reading progress, history and categories"
+            onPress={importLegacyDatabase}
+            theme={theme}
+          />
+          <List.InfoItem
+            title="Extracting the database needs root or adb; downloaded chapters do not transfer. See the README."
             icon="information-outline"
             theme={theme}
           />
