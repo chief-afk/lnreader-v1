@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Modal, overlay, TextInput } from 'react-native-paper';
-import { StorageAccessFramework } from 'expo-file-system';
+import { StorageAccessFramework } from 'expo-file-system/legacy';
 import * as DocumentPicker from 'expo-document-picker';
 
 import { Button } from '@components/index';
@@ -43,10 +43,10 @@ const CustomFileModal: React.FC<CustomFileModal> = ({
         type: mimeType,
       });
 
-      if (file.type === 'success') {
-        const content = await StorageAccessFramework.readAsStringAsync(
-          file.uri,
-        );
+      const fileUri = file.assets?.[0]?.uri;
+
+      if (fileUri) {
+        const content = await StorageAccessFramework.readAsStringAsync(fileUri);
 
         onSave(content.trim());
         onDismiss();

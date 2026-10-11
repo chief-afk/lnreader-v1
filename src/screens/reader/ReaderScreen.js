@@ -5,7 +5,15 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { Dimensions, NativeModules, NativeEventEmitter } from 'react-native';
+import {
+  BackHandler,
+  Dimensions,
+  NativeModules,
+  NativeEventEmitter,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import VolumeButtonListener from './../../utils/volumeButtonListener';
 
@@ -42,7 +50,6 @@ import { defaultTo } from 'lodash-es';
 import BottomInfoBar from './components/BottomInfoBar/BottomInfoBar';
 import { sanitizeChapterText } from './utils/sanitizeChapterText';
 import ChapterDrawer from './components/ChapterDrawer';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { htmlToText } from '../../sources/helpers/htmlToText';
 import ChapterLoadingScreen from './ChapterLoadingScreen/ChapterLoadingScreen';
 import { ErrorScreenV2 } from '@components';
@@ -50,23 +57,66 @@ import { getString } from '@strings/translations';
 import { useNavigation } from '@react-navigation/native';
 
 const Chapter = ({ route }) => {
-  const DrawerNav = createDrawerNavigator();
+  const navigation = useNavigation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      return;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setDrawerOpen(false);
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [drawerOpen]);
+
   return (
-    <DrawerNav.Navigator
-      params={route.params}
-      drawerContent={props => <ChapterDrawer {...props} />}
-    >
-      <DrawerNav.Screen
-        name="ChapterContent"
-        initialParams={route.params}
-        options={{ headerShown: false }}
-        component={ChapterContent}
+    <View style={{ flex: 1 }}>
+      <ChapterContent
+        route={route}
+        navigation={navigation}
+        onOpenDrawer={() => setDrawerOpen(true)}
       />
-    </DrawerNav.Navigator>
+      {drawerOpen && (
+        <>
+          <Pressable
+            style={styles.drawerBackdrop}
+            onPress={() => setDrawerOpen(false)}
+          />
+          <View style={styles.drawerContainer}>
+            <ChapterDrawer
+              params={route.params}
+              navigation={navigation}
+              onClose={() => setDrawerOpen(false)}
+            />
+          </View>
+        </>
+      )}
+    </View>
   );
 };
 
-const ChapterContent = ({ route, navigation }) => {
+const styles = StyleSheet.create({
+  drawerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  drawerContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: '78%',
+    maxWidth: 320,
+    elevation: 8,
+  },
+});
+
+const ChapterContent = ({ route, navigation, onOpenDrawer }) => {
   useKeepAwake();
   const params = route.params;
   const {
@@ -378,7 +428,7 @@ const ChapterContent = ({ route, navigation }) => {
     [chapter.chapterText, removeExtraParagraphSpacing, bionicReading, sourceId],
   );
   const openDrawer = () => {
-    navigation.openDrawer();
+    onOpenDrawer();
     hideHeader();
   };
 
