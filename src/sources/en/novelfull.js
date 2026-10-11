@@ -86,34 +86,65 @@ const parseNovelAndChapters = async novelUrl => {
     .next()
     .text();
 
-  const novelId = loadedCheerio('#rating').attr('data-novel-id');
+  const parseChapterList = html => {
+    loadedCheerio = cheerio.load(html);
 
-  const getChapters = async id => {
-    const chapterListUrl = baseUrl + '/ajax/chapter-option?novelId=' + id;
+    const chapters = [];
 
-    const data = await fetch(chapterListUrl);
-    const chapters = await data.text();
-
-    loadedCheerio = cheerio.load(chapters);
-
-    let novelChapters = [];
-
-    loadedCheerio('select > option').each(function () {
-      let chapterName = loadedCheerio(this).text();
-      let releaseDate = null;
-      let chapterUrl = loadedCheerio(this).attr('value');
+    loadedCheerio('ul.list-chapter > li > a').each(function () {
+      let chapterUrl = loadedCheerio(this).attr('href');
+      if (!chapterUrl) {
+        return;
+      }
+      const chapterName =
+        loadedCheerio(this).attr('title') || loadedCheerio(this).text().trim();
       chapterUrl = chapterUrl.replace(`/${novelUrl}`, '');
 
-      novelChapters.push({
+      chapters.push({
         chapterName,
-        releaseDate,
+        releaseDate: null,
         chapterUrl,
       });
     });
-    return novelChapters;
+    return chapters;
   };
 
-  novel.chapters = await getChapters(novelId);
+  // the site removed its chapter ajax endpoint; the chapter list is now
+  // server-rendered: page 1 holds the oldest 50 chapters, later pages
+  // continue ascending in blocks of 50
+  const getChapters = async () => {
+    const novelPageUrl = `${baseUrl}/${novelUrl.slice(0, -1)}.html`;
+
+    const firstResult = await fetch(novelPageUrl);
+    const firstPage = await firstResult.text();
+    const totalPages = parseInt(
+      firstPage.match(/total-page[^0-9]*(\d+)/)?.[1] || '1',
+      10,
+    );
+
+    const seen = new Set();
+    const chapters = [];
+
+    const addChapters = newChapters => {
+      newChapters.forEach(chapter => {
+        if (!seen.has(chapter.chapterUrl)) {
+          seen.add(chapter.chapterUrl);
+          chapters.push(chapter);
+        }
+      });
+    };
+
+    addChapters(parseChapterList(firstPage));
+
+    for (let page = 2; page <= totalPages; page++) {
+      const pageResult = await fetch(`${novelPageUrl}?page=${page}`);
+      addChapters(parseChapterList(await pageResult.text()));
+    }
+
+    return chapters;
+  };
+
+  novel.chapters = await getChapters();
 
   return novel;
 };
