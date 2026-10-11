@@ -59,13 +59,25 @@ public class MainApplication extends Application implements ReactApplication {
     return mReactNativeHost;
   }
 
+  private ReactHost mReactHost;
+
+  @Override
+  public ReactHost getReactHost() {
+    return mReactHost;
+  }
+
   @Override
   public void onCreate() {
     super.onCreate();
-    SoLoader.init(this, OpenSourceMergedSoMapping.INSTANCE);
+    try {
+      SoLoader.init(this, OpenSourceMergedSoMapping.INSTANCE);
+    } catch (java.io.IOException e) {
+      throw new RuntimeException(e);
+    }
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       DefaultNewArchitectureEntryPoint.load();
     }
+    mReactHost = DefaultReactHost.getDefaultReactHost(this, mReactNativeHost, null);
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }
 
