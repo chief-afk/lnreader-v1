@@ -12,7 +12,11 @@
     "baseUrl": "https://zinnovel.com/",
     "sourceName": "ZinnNovel",
     "options": {
-      "path": { "novels": "manga", "novel": "manga", "chapter": "manga" }
+      "path": {
+        "novels": "manga",
+        "novel": "manga",
+        "chapter": "manga"
+      }
     }
   },
   {
@@ -20,7 +24,11 @@
     "baseUrl": "https://noveltranslate.com/",
     "sourceName": "NovelTranslate",
     "options": {
-      "path": { "novels": "all-novels", "novel": "novel", "chapter": "novel" }
+      "path": {
+        "novels": "all-novels",
+        "novel": "novel",
+        "chapter": "novel"
+      }
     }
   },
   {
@@ -28,7 +36,11 @@
     "baseUrl": "https://www.lunarletters.com/",
     "sourceName": "LunarLetters",
     "options": {
-      "path": { "novels": "series", "novel": "series", "chapter": "series" },
+      "path": {
+        "novels": "series",
+        "novel": "series",
+        "chapter": "series"
+      },
       "useNewChapterEndpoint": true
     }
   },
@@ -37,7 +49,11 @@
     "baseUrl": "https://sleepytranslations.com/",
     "sourceName": "SleepyTranslations",
     "options": {
-      "path": { "novels": "series", "novel": "series", "chapter": "series" },
+      "path": {
+        "novels": "series",
+        "novel": "series",
+        "chapter": "series"
+      },
       "useNewChapterEndpoint": true
     }
   },
@@ -72,7 +88,11 @@
     "baseUrl": "https://mostnovel.com/",
     "sourceName": "MostNovel",
     "options": {
-      "path": { "novels": "manga", "novel": "manga", "chapter": "manga" }
+      "path": {
+        "novels": "manga",
+        "novel": "manga",
+        "chapter": "manga"
+      }
     }
   },
   {
@@ -85,7 +105,11 @@
     "baseUrl": "https://lightnovelheaven.com/",
     "sourceName": "LightNovelHeaven",
     "options": {
-      "path": { "novels": "series", "novel": "series", "chapter": "series" },
+      "path": {
+        "novels": "series",
+        "novel": "series",
+        "chapter": "series"
+      },
       "useNewChapterEndpoint": true
     }
   },
@@ -105,7 +129,7 @@
   },
   {
     "sourceId": 60,
-    "baseUrl": "https://meionovel.id/",
+    "baseUrl": "https://meionovels.com/",
     "sourceName": "MeioNovel",
     "options": {
       "useNewChapterEndpoint": true,
@@ -139,7 +163,9 @@
     "sourceId": 66,
     "baseUrl": "https://wbnovel.com/",
     "sourceName": "WBNovel",
-    "options": { "lang": "Indonesian" }
+    "options": {
+      "lang": "Indonesian"
+    }
   },
   {
     "sourceId": 74,
@@ -154,7 +180,11 @@
     "baseUrl": "https://mysticalmerries.com/",
     "sourceName": "MysticalSeries",
     "options": {
-      "path": { "novels": "series", "novel": "series", "chapter": "series" },
+      "path": {
+        "novels": "series",
+        "novel": "series",
+        "chapter": "series"
+      },
       "useNewChapterEndpoint": true
     }
   },
@@ -180,7 +210,11 @@
     "baseUrl": "https://hizomanga.net/",
     "sourceName": "HizoManga",
     "options": {
-      "path": { "novels": "serie", "novel": "serie", "chapter": "serie" },
+      "path": {
+        "novels": "serie",
+        "novel": "serie",
+        "chapter": "serie"
+      },
       "useNewChapterEndpoint": true,
       "lang": "Arabic"
     }
@@ -262,7 +296,11 @@
     "sourceName": "Sweet Escape Translations",
     "options": {
       "useNewChapterEndpoint": false,
-      "path": { "novels": "manga", "novel": "manga", "chapter": "manga" }
+      "path": {
+        "novels": "manga",
+        "novel": "manga",
+        "chapter": "manga"
+      }
     }
   },
   {
@@ -323,7 +361,11 @@
     "sourceName": "Nocturne Translations",
     "options": {
       "lang": "English",
-      "path": { "novels": "novels", "novel": "novels", "chapter": "novels" }
+      "path": {
+        "novels": "novels",
+        "novel": "novels",
+        "chapter": "novels"
+      }
     }
   },
   {
@@ -332,7 +374,11 @@
     "sourceName": "Sugar Babies",
     "options": {
       "lang": "English",
-      "path": { "novels": "series", "novel": "series", "chapter": "series" }
+      "path": {
+        "novels": "series",
+        "novel": "series",
+        "chapter": "series"
+      }
     }
   },
   {
@@ -341,7 +387,11 @@
     "sourceName": "Novelroom.net",
     "options": {
       "lang": "English",
-      "path": { "novels": "manga", "novel": "manga", "chapter": "manga" }
+      "path": {
+        "novels": "manga",
+        "novel": "manga",
+        "chapter": "manga"
+      }
     }
   },
   {
@@ -350,7 +400,11 @@
     "sourceName": "NovelR18 ",
     "options": {
       "lang": "English",
-      "path": { "novels": "novel", "novel": "manga", "chapter": "manga" },
+      "path": {
+        "novels": "novel",
+        "novel": "manga",
+        "chapter": "manga"
+      },
       "useNewChapterEndpoint": true
     }
   },

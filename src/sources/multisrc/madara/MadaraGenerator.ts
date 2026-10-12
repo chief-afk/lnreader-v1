@@ -108,7 +108,7 @@ export const ArNovelScraper = new MadaraScraper(
 
 export const MeioNovelScraper = new MadaraScraper(
   60,
-  'https://meionovel.id/',
+  'https://meionovels.com/',
   'MeioNovel',
   { 'useNewChapterEndpoint': true, 'lang': 'Indonesian' },
 );
