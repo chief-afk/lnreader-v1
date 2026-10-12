@@ -3,53 +3,32 @@ import { showToast } from '../../hooks/showToast';
 import { fetchNovel } from '../Source/source';
 import { downloadChapter } from '../../database/queries/ChapterQueries';
 
-import * as SQLite from 'expo-sqlite';
-import { getNovel } from '@database/queries/NovelQueries';
-
-const db = SQLite.openDatabase('lnreader.db');
+import { db } from '../../database/db';
+import { getNovel } from '../../database/queries/NovelQueries';
 
 const updateNovelMetadata = async (novelId, novel) => {
   const { novelName, novelCover, novelSummary, author, artist, genre, status } =
     novel;
 
-  db.transaction(tx => {
-    tx.executeSql(
-      'UPDATE novels SET novelName = ?, novelCover = ?, novelSummary = ?, author = ?, artist = ?, genre = ?, status = ? WHERE novelId = ?',
-      [
-        novelName,
-        novelCover,
-        novelSummary,
-        author,
-        artist,
-        genre,
-        status,
-        novelId,
-      ],
-      (txObj, res) => {},
-      (txObj, error) => showToast(`Error: ${error}`),
-    );
-  });
+  db.runSync(
+    'UPDATE novels SET novelName = ?, novelCover = ?, novelSummary = ?, author = ?, artist = ?, genre = ?, status = ? WHERE novelId = ?',
+    [
+      novelName,
+      novelCover,
+      novelSummary,
+      author,
+      artist,
+      genre,
+      status,
+      novelId,
+    ],
+  );
 };
 
-const updateNovelCover = async (novelId, novel) => {
-  const { novelCover } = novel;
-
-  db.transaction(tx => {
-    tx.executeSql(
-      'UPDATE novels SET novelCover = ? WHERE novelId = ?',
-      [novelCover, novelId],
-      (txObj, res) => {},
-      (txObj, error) => showToast(`Error: ${error}`),
-    );
-  });
-};
-
-const insertUpdate = async (tx, chapterId, novelId) =>
-  tx.executeSql(
+const insertUpdate = (chapterId, novelId) =>
+  db.runSync(
     "INSERT OR IGNORE INTO updates (chapterId, novelId, updateTime) values (?, ?, (datetime('now','localtime')))",
     [chapterId, novelId],
-    (txOBJ, res) => {},
-    (txOBJ, error) => {},
   );
 
 const updateNovel = async (sourceId, novelUrl, novelId, options) => {
@@ -69,30 +48,20 @@ const updateNovel = async (sourceId, novelUrl, novelId, options) => {
     updateNovelMetadata(novelId, novel);
   }
 
-  db.transaction(tx => {
-    novel.chapters.map(chapter => {
-      const { chapterName, chapterUrl, releaseDate } = chapter;
+  novel.chapters.map(chapter => {
+    const { chapterUrl, chapterName, releaseDate } = chapter;
 
-      tx.executeSql(
-        'INSERT OR IGNORE INTO chapters (chapterUrl, chapterName, releaseDate, novelId) values (?, ?, ?, ?)',
-        [chapterUrl, chapterName, releaseDate, novelId],
-        (txObj, { insertId }) => {
-          if (insertId !== -1) {
-            if (downloadNewChapters) {
-              downloadChapter(
-                sourceId,
-                novelUrl,
-                novelId,
-                chapterUrl,
-                insertId,
-              );
-            }
-            insertUpdate(tx, insertId, novelId);
-          }
-        },
-        (txObj, error) => {},
-      );
-    });
+    const result = db.runSync(
+      'INSERT OR IGNORE INTO chapters (chapterUrl, chapterName, releaseDate, novelId) values (?, ?, ?, ?)',
+      [chapterUrl, chapterName, releaseDate, novelId],
+    );
+    const insertId = Number(result.lastInsertRowId);
+    if (insertId !== -1 && insertId !== 0) {
+      if (downloadNewChapters) {
+        downloadChapter(sourceId, novelUrl, novelId, chapterUrl, insertId);
+      }
+      insertUpdate(insertId, novelId);
+    }
   });
 };
 
