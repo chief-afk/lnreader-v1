@@ -86,7 +86,7 @@ const parseNovelAndChapters = async novelUrl => {
 
   const chapters = [];
 
-  loadedCheerio('.download-chapter div.title').each(function () {
+  loadedCheerio('.columns-toc div.title').each(function () {
     chapters.push({
       chapterName: loadedCheerio(this).find('a').attr('title'),
       releaseDate: parseDate(loadedCheerio(this).find('time').text()),
@@ -103,9 +103,9 @@ const parseChapter = async (novelUrl, chapterUrl) => {
   const body = await result.text();
   const loadedCheerio = cheerio.load(body);
 
-  loadedCheerio('div[class="adblock-service"]').remove();
-  const chapterName = loadedCheerio('h1[class="entry-title"]').text();
-  const chapterText = loadedCheerio('div[class="entry-content"]').html();
+  loadedCheerio('div.adblock-service').remove();
+  const chapterName = loadedCheerio('h1.entry-title').text();
+  const chapterText = loadedCheerio('div.entry-content').html();
 
   const chapter = {
     sourceId,
