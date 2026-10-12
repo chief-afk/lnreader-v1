@@ -205,10 +205,11 @@ class RulateScraper {
         .find('td[class="t"] > a')
         .text()
         .trim();
-      const releaseTime = loadedCheerio(this)
-        .find('td > span')
-        .attr('title')
-        ?.trim();
+      const releaseTime = (
+        loadedCheerio(this).find('td time').attr('title') ||
+        loadedCheerio(this).find('td > span').attr('title') ||
+        ''
+      ).trim();
       const chapterUrl = loadedCheerio(this)
         .find('td[class="t"] > a')
         .attr('href');
