@@ -7,75 +7,68 @@ const sourceName = 'Divine Dao Library';
 
 const baseUrl = 'https://www.divinedaolibrary.com/';
 
-const popularNovels = async page => {
-  let url = baseUrl + 'novels';
+const parseStoryLinks = loadedCheerio => {
+  let novels = [];
+  const seen = new Set();
 
-  const result = await fetch(url);
+  loadedCheerio('a[href*="/story/"]').each(function () {
+    const novelUrl = loadedCheerio(this).attr('href');
+    if (!novelUrl || seen.has(novelUrl)) return;
+    seen.add(novelUrl);
+
+    const novelName = loadedCheerio(this).text().trim();
+
+    novels.push({ sourceId, novelName, novelCover: null, novelUrl });
+  });
+
+  return novels;
+};
+
+const popularNovels = async page => {
+  const result = await fetch(baseUrl + 'novels');
   const body = await result.text();
 
-  const loadedCheerio = cheerio.load(body);
-
-  let novels = [];
-
-  loadedCheerio('#main')
-    .find('li')
-    .each(function () {
-      const novelName = loadedCheerio(this).find('a').text();
-      const novelCover = null;
-      const novelUrl = loadedCheerio(this).find(' a').attr('href');
-
-      const novel = {
-        sourceId,
-        novelName,
-        novelCover,
-        novelUrl,
-      };
-
-      novels.push(novel);
-    });
-
-  return { novels };
+  return { novels: parseStoryLinks(cheerio.load(body)) };
 };
 
 const parseNovelAndChapters = async novelUrl => {
-  const url = novelUrl;
-
-  const result = await fetch(url);
+  const result = await fetch(novelUrl);
   const body = await result.text();
 
   const loadedCheerio = cheerio.load(body);
 
-  let novel = { sourceId, sourceName, url, novelUrl };
+  const novel = {
+    sourceId,
+    sourceName,
+    url: novelUrl,
+    novelUrl,
+  };
 
-  novel.novelName = loadedCheerio('h1.entry-title').text().trim();
+  novel.novelName = loadedCheerio('h1').first().text().trim();
 
   novel.novelCover =
-    loadedCheerio('.entry-content').find('img').attr('src') || defaultCoverUri;
+    loadedCheerio('meta[property="og:image"]').attr('content') ||
+    defaultCoverUri;
 
-  novel.summary = loadedCheerio('#main > article > div > p:nth-child(6)')
-    .text()
-    .trim();
+  novel.summary = loadedCheerio('meta[name="description"]').attr('content');
 
-  novel.genre = null;
+  novel.author = null;
 
   novel.status = null;
 
-  novel.author = loadedCheerio('#main > article > div > h3:nth-child(2)')
-    .text()
-    .replace(/Author:/g, '')
-    .trim();
+  novel.genre = null;
 
   let novelChapters = [];
 
-  loadedCheerio('#main')
-    .find('li > span > a')
-    .each(function () {
-      const chapterName = loadedCheerio(this).text().trim();
-      const releaseDate = null;
-      const chapterUrl = loadedCheerio(this).attr('href');
+  loadedCheerio('a.chapter-group__list-item-link').each(function () {
+    const chapterUrl = loadedCheerio(this).attr('href');
+    if (!chapterUrl) return;
 
-      novelChapters.push({ chapterName, releaseDate, chapterUrl });
-    });
+    const chapterName = loadedCheerio(this).text().trim();
+    const releaseDate = null;
+
+    novelChapters.push({ chapterName, releaseDate, chapterUrl });
+  });
 
   novel.chapters = novelChapters;
 
@@ -83,20 +76,14 @@ const parseNovelAndChapters = async novelUrl => {
 };
 
 const parseChapter = async (novelUrl, chapterUrl) => {
-  const url = chapterUrl;
-
-  const result = await fetch(url);
+  const result = await fetch(chapterUrl);
   const body = await result.text();
 
   const loadedCheerio = cheerio.load(body);
 
-  let chapterName = loadedCheerio('.entry-title').text().trim();
+  const chapterName = loadedCheerio('h1.chapter__title').text().trim();
 
-  let chapterText = loadedCheerio('.entry-content').html();
-
-  if (!chapterText) {
-    chapterText = loadedCheerio('.page-header').html();
-  }
+  let chapterText = loadedCheerio('#chapter-content').html();
 
   chapterText = `<p><h1>${chapterName}</h1></p>` + chapterText;
 
@@ -112,37 +99,12 @@ const parseChapter = async (novelUrl, chapterUrl) => {
 };
 
 const searchNovels = async searchTerm => {
-  let url = baseUrl + 'novels';
+  const url = `${baseUrl}?s=${encodeURIComponent(searchTerm)}`;
 
   const result = await fetch(url);
   const body = await result.text();
 
-  const loadedCheerio = cheerio.load(body);
-
-  let novels = [];
-
-  loadedCheerio('#main')
-    .find('li')
-    .each(function () {
-      const novelName = loadedCheerio(this).find('a').text();
-      const novelCover = null;
-      const novelUrl = loadedCheerio(this).find(' a').attr('href');
-
-      const novel = {
-        sourceId,
-        novelName,
-        novelCover,
-        novelUrl,
-      };
-
-      novels.push(novel);
-    });
-
-  novels = novels.filter(novel =>
-    novel.novelName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  return novels;
+  return parseStoryLinks(cheerio.load(body));
 };
 
 const DivineDaoLibraryScraper = {
