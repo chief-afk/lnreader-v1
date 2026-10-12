@@ -74,18 +74,20 @@ const parseNovelAndChapters = async novelUrl => {
 
   let chapters = [];
 
-  loadedCheerio('.series-chapterlist li a').each(function () {
-    let titles = startCase(
-      loadedCheerio(this)
-        .attr('title')
-        .replace(/Bahasa Indonesia/g, '')
-        .replace(/\s\s+/g, ' ')
-        .trim(),
-    );
+  loadedCheerio('.series-chapterlists li').each(function () {
+    const chapterUrl = loadedCheerio(this).find('a').attr('href');
+    if (!chapterUrl) return;
+
+    const titles = loadedCheerio(this)
+      .find('a > span')
+      .first()
+      .text()
+      .replace(/Bahasa Indonesia/g, '')
+      .replace(/\s\s+/g, ' ')
+      .trim();
 
     const chapterName = titles.replace(`${novel.novelName}`, '');
-    const releaseDate = loadedCheerio(this).find('span:last').text();
-    const chapterUrl = loadedCheerio(this).attr('href');
+    const releaseDate = loadedCheerio(this).find('.date').text().trim();
 
     chapters.push({ chapterName, releaseDate, chapterUrl });
   });
