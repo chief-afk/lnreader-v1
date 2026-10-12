@@ -84,7 +84,9 @@ class MadaraScraper {
 
     loadedCheerio('.manga-title-badges').remove();
 
-    novel.novelName = loadedCheerio('.post-title h1').text().trim();
+    novel.novelName =
+      loadedCheerio('.post-title h1').text().trim() ||
+      loadedCheerio('.manga-title h2').text().trim();
 
     novel.novelCover =
       loadedCheerio('.summary_image > a > img').attr('data-lazy-src') ||

@@ -212,10 +212,10 @@
     "options": {
       "path": {
         "novels": "serie",
-        "novel": "serie",
-        "chapter": "serie"
+        "novel": "content",
+        "chapter": "content"
       },
-      "useNewChapterEndpoint": true,
+      "useNewChapterEndpoint": false,
       "lang": "Arabic"
     }
   },

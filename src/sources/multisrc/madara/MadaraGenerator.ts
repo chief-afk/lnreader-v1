@@ -181,8 +181,8 @@ export const HizoMangaScraper = new MadaraScraper(
   'https://hizomanga.net/',
   'HizoManga',
   {
-    'path': { 'novels': 'serie', 'novel': 'serie', 'chapter': 'serie' },
-    'useNewChapterEndpoint': true,
+    'path': { 'novels': 'serie', 'novel': 'content', 'chapter': 'content' },
+    'useNewChapterEndpoint': false,
     'lang': 'Arabic',
   },
 );
