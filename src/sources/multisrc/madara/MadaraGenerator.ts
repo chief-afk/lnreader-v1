@@ -142,7 +142,11 @@ export const WBNovelScraper = new MadaraScraper(
   66,
   'https://wbnovel.com/',
   'WBNovel',
-  { 'lang': 'Indonesian' },
+  {
+    'lang': 'Indonesian',
+    'path': { 'novels': 'nv', 'novel': 'nv', 'chapter': 'nv' },
+    'useNewChapterEndpoint': true,
+  },
 );
 
 export const WuxiaWorldDotSiteScraper = new MadaraScraper(

@@ -164,7 +164,13 @@
     "baseUrl": "https://wbnovel.com/",
     "sourceName": "WBNovel",
     "options": {
-      "lang": "Indonesian"
+      "lang": "Indonesian",
+      "path": {
+        "novels": "nv",
+        "novel": "nv",
+        "chapter": "nv"
+      },
+      "useNewChapterEndpoint": true
     }
   },
   {
