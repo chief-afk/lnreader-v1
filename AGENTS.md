@@ -38,6 +38,13 @@ nice-to-have:
   package.json version at tag time.
 - Releases are git tags `v1.2.x` pushed to chief-afk/lnreader-v1; the
   tag-triggered workflow builds and publishes the signed APK.
+- There is no CHANGELOG.md. Release highlights are written as the
+  **annotated tag message** (one summary line, blank line, bullet
+  list); `release.yml` turns it into the GitHub Release body on top of
+  GitHub's generated notes. When tagging, always create annotated tags
+  with the notes in the message - never lightweight tags.
+- Before tagging: appVersion updated, About/update-checker pointed at
+  this repo, main pushed and CI green.
 
 ## Upstream relationship
 
