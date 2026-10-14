@@ -1,240 +1,207 @@
 import * as cheerio from 'cheerio';
 import { defaultCoverUri } from '../helpers/constants';
 
-// get given page of search (if pagenum is 0 or >100 (max possible on site) see first page)
-const searchUrl = (pagenum, order) => {
-  return `https://yomou.syosetu.com/search.php?order=${order || 'hyoka'}${
-    !isNaN((pagenum = parseInt(pagenum, 10))) // check if pagenum is a number
-      ? `&p=${pagenum <= 1 || pagenum > 100 ? '1' : pagenum}` // check if pagenum is between 1 and 100
-      : '' // if isn't don't set ?p
-  }`;
-};
+// the site's 2025 redesign renamed everything: rankings live under
+// yomou/rank with c-card items, novels use p-novel/p-eplist classes
+const site = 'https://yomou.syosetu.com/';
+const novelPrefix = 'https://ncode.syosetu.com';
 
-// get the Syosetu ID of the chapter
+const sourceId = 36;
+
+const sourceName = 'Syosetu';
+
+// there are no covers on Syosetu
+const novelCover = defaultCoverUri;
+
+// get the Syosetu ID of a novel (/n2267be/) or chapter (/n2267be/1/)
 const getLastPartOfUrl = url => {
   let temp = /.*(?=\/)(.{2,})$/.exec(url);
   return temp ? temp[1].replace(/\//g, '') : null;
 };
 
-// get novelUrl from Syosetu ID
-const getNovelUrl = id => `https://ncode.syosetu.com/${id}`;
+const getNovelUrl = id => `${novelPrefix}/${id}`;
 
-// get chapterUrl from Syosetu ID and chapter ID
 const getChapterUrl = (id, chn) =>
-  `https://ncode.syosetu.com/${id}${chn === 'oneshot' ? '' : `/${chn}`}`;
+  `${novelPrefix}/${id}${chn === 'oneshot' ? '' : `/${chn}`}`;
 
-// Because syosetu does not have any covers, I did a replacement for them
-const novelCover = defaultCoverUri;
+// the ranking list clamps out-of-range pages to the last one; the pager
+// marks the served page with .is-current (absent on page 1)
+const getRankPageNovels = async pagenumber => {
+  const url = `${site}rank/list/type/total_total/?p=${pagenumber}`;
 
-// ID of this extension
-const sourceId = 36;
+  const result = await fetch(url);
+  const body = await result.text();
 
-// Name of this extension
-const sourceName = 'Syosetu';
+  const loadedCheerio = cheerio.load(body);
 
-// there are 20 mangas per page
-// this is number of pages loaded in the first "batch" of loads
-// const maxPageLoad = 3;
+  const servedPage = parseInt(loadedCheerio('.is-current').text() || '1', 10);
+  if (servedPage !== pagenumber) {
+    return [];
+  }
+
+  let novels = [];
+
+  loadedCheerio('.c-card .p-ranklist-item__title a').each(function () {
+    const href = loadedCheerio(this).attr('href');
+    if (!href) {
+      return;
+    }
+
+    novels.push({
+      novelName: loadedCheerio(this).text(),
+      novelUrl: getLastPartOfUrl(href),
+      sourceId,
+      novelCover,
+    });
+  });
+
+  return novels;
+};
 
 const popularNovels = async page => {
-  // array of all the novels
-  let novels = [];
-  // returns list of novels from given page
-  let getNovelsFromPage = async pagenumber => {
-    // load page
-    const result = await fetch(searchUrl(pagenumber || null));
-    const body = await result.text();
-    // Cheerio it!
-    const cheerioQuery = cheerio.load(body, { decodeEntities: false });
-
-    let pageNovels = [];
-    // find class=searchkekka_box
-    cheerioQuery('.searchkekka_box').each(function (i, e) {
-      // get div with link and name
-      const novelDIV = cheerioQuery(this).find('.novel_h');
-      // get link element
-      const novelA = novelDIV.children()[0];
-      // add new novel to array
-      pageNovels.push({
-        novelName: novelDIV.text(), // get the name
-        novelUrl: getLastPartOfUrl(novelA.attribs.href), // get last part of the link
-        sourceId,
-        novelCover, // TODO: IDK what to do about covers... On Syo they don't have them
-      });
-    });
-    // return all novels from this page
-    return pageNovels;
-  };
-
-  novels = await getNovelsFromPage(page);
-  /** Use
-   * novels.push(...(await getNovelsFromPage(pageNumber)))
-   * if you want to load more
-   */
-
-  // respond with novels!
-  return { novels };
+  return { novels: await getRankPageNovels(parseInt(page, 10) || 1) };
 };
+
+// the episode list is paginated 100 per page; read the total from the
+// last-page pager link and fetch the remaining pages in parallel
+const getChapters = loadedCheerio =>
+  loadedCheerio('.p-eplist__sublist')
+    .map(function () {
+      const chapterA = loadedCheerio(this).find('a');
+      return {
+        chapterName: chapterA.text().trim(),
+        releaseDate: loadedCheerio(this)
+          .find('.p-eplist__update')
+          .text()
+          .trim()
+          .split(' ')[0]
+          .replace(/\//g, '-'),
+        chapterUrl: getLastPartOfUrl(chapterA.attr('href')),
+      };
+    })
+    .toArray();
 
 const parseNovelAndChapters = async novelUrl => {
   const url = getNovelUrl(novelUrl);
 
-  let chapters = [];
-
   const result = await fetch(url);
   const body = await result.text();
-  const cheerioQuery = cheerio.load(body, { decodeEntities: false });
+  const cheerioQuery = cheerio.load(body);
 
-  // create novel object
+  const announceText = cheerioQuery('.c-announce').text();
+
   let novel = {
     sourceId,
     sourceName,
-    url: url,
+    url,
     novelUrl,
-    novelName: cheerioQuery('.novel_title').text(),
-    author: cheerioQuery('.novel_writername').text().replace('作者：', ''),
+    novelName: cheerioQuery('.p-novel__title').text(),
+    author: cheerioQuery('.p-novel__author')
+      .text()
+      .replace('作者：', '')
+      .trim(),
     novelCover,
+    status:
+      announceText.includes('連載中') || announceText.includes('未完結')
+        ? 'Ongoing'
+        : announceText.includes('完結')
+        ? 'Completed'
+        : 'Unknown',
   };
 
-  // Get all the chapters
-  const cqGetChapters = cheerioQuery('.novel_sublist2');
-  if (cqGetChapters.length !== 0) {
-    // has more than 1 chapter
-    novel.summary = cheerioQuery('#novel_ex')
-      .text()
-      .replace(/<\s*br.*?>/g, '\n');
-    cqGetChapters.each(function (i, e) {
-      const chapterA = cheerioQuery(this).find('a');
-      const [chapterName, releaseDate, chapterUrl] = [
-        // set the variables
-        chapterA.text(),
-        cheerioQuery(this)
-          .find('dt') // get title
-          .text() // get text
-          .replace(/（.）/g, '') // remove "(edited)" mark
-          .trim(), // trim spaces
-        getLastPartOfUrl(chapterA.attr('href')),
-      ];
-      chapters.push({ chapterName, releaseDate, chapterUrl });
-    });
-  } else {
-    /**
-     * Because there are oneshots on the site, they have to be treated with special care
-     * that's what pisses me off in Shosetsu app. They have this extension,
-     * but every oneshot is set as "there are no chapters" and all contents are thrown into the description!!
-     */
-    // get summary for oneshot chapter
+  novel.summary = cheerioQuery('#novel_ex').text().trim();
 
-    const nameResult = await fetch(searchUrl() + `&word=${novel.novelName}`);
-    const nameBody = await nameResult.text();
-    const summaryQuery = cheerio.load(nameBody, { decodeEntities: false });
-    const foundText = summaryQuery('.searchkekka_box')
+  let chapters = getChapters(cheerioQuery);
+
+  if (chapters.length === 0) {
+    // oneshots have no episode list; the whole text sits on the novel page
+    const nameResult = await fetch(
+      `${site}search.php?order=hyoka&word=${encodeURIComponent(
+        novel.novelName,
+      )}`,
+    );
+    const summaryQuery = cheerio.load(await nameResult.text());
+    novel.summary = summaryQuery
+      .find('.smpnovel_list')
       .first()
-      .find('.ex')
+      .find('.smpnovel_ex')
       .text()
-      .replace(/\s{2,}/g, '\n');
-    novel.summary = foundText;
+      .trim();
 
-    // add single chapter
     chapters.push({
       chapterName: 'Oneshot',
-      releaseDate: cheerioQuery('head')
-        .find("meta[name='WWWC']")
-        .attr('content'), // get date from metadata
-      chapterUrl: 'oneshot', // set chapterUrl to oneshot so that chapterScraper knows it's a one-shot
+      releaseDate: null,
+      chapterUrl: 'oneshot',
     });
+  } else {
+    const lastPageLink = cheerioQuery('.c-pager__item--last').attr('href');
+    if (lastPageLink) {
+      const lastPageMatch = lastPageLink.match(/\?p=(\d+)/);
+      const totalPages = lastPageMatch ? parseInt(lastPageMatch[1], 10) : 1;
+
+      const pageBodies = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) =>
+          fetch(`${getNovelUrl(novelUrl)}?p=${i + 2}`).then(r => r.text()),
+        ),
+      );
+
+      for (const pageBody of pageBodies) {
+        chapters = chapters.concat(getChapters(cheerio.load(pageBody)));
+      }
+    }
   }
+
   novel.chapters = chapters;
 
   return novel;
 };
 
-let parseChapter = async (novelUrl, chapterUrl) => {
-  const url = getChapterUrl(novelUrl, chapterUrl); // get Url
-
-  const result = await fetch(url);
+const parseChapter = async (novelUrl, chapterUrl) => {
+  const result = await fetch(getChapterUrl(novelUrl, chapterUrl));
   const body = await result.text();
 
-  // create cheerioQuery
-  const cheerioQuery = cheerio.load(body, {
-    decodeEntities: false,
-  });
+  const cheerioQuery = cheerio.load(body);
 
-  let chapterText = cheerioQuery('#novel_honbun') // get chapter text
-    .html();
-  // create chapter data structure
-  let chapter = {
-    sourceId: 36,
+  const chapter = {
+    sourceId,
     novelUrl,
     chapterUrl,
-    chapterName: '',
-    chapterText,
+    chapterName: cheerioQuery('.p-novel__title').text(),
+    // exclude the modifier variants (afterword, keyword blocks)
+    chapterText:
+      cheerioQuery(
+        '.p-novel__body .p-novel__text:not([class*="p-novel__text--"])',
+      ).html() || '',
   };
-
-  if (chapterUrl === 'oneshot') {
-    // oneshot get name
-    chapter.chapterName = cheerioQuery('#novel_title').text();
-  } else {
-    // single chapter
-
-    // get name
-    chapter.chapterName = cheerioQuery('.novel_subtitle').first().text();
-  }
 
   return chapter;
 };
 
-let searchNovels = async searchTerm => {
-  // const orderBy = req.query.o;
+const searchNovels = async searchTerm => {
+  const result = await fetch(
+    `${site}search.php?order=hyoka&word=${encodeURIComponent(searchTerm)}`,
+  );
+  const body = await result.text();
 
-  // array of all the novels
+  const cheerioQuery = cheerio.load(body);
+
   let novels = [];
 
-  // returns list of novels from given page
-  let getNovelsFromPage = async pagenumber => {
-    // load page
-    const result = await fetch(
-      searchUrl(pagenumber || null, null) + `&word=${searchTerm}`,
-    );
-    const body = await result.text();
-    // Cheerio it!
-    const cheerioQuery = cheerio.load(body, { decodeEntities: false });
+  cheerioQuery('.smpnovel_list').each(function () {
+    // the "read this work" button carries the novel's ncode link
+    const novelA = cheerioQuery(this).find('a.read_button').attr('href');
+    if (!novelA) {
+      return;
+    }
 
-    let pageNovels = [];
-    // find class=searchkekka_box
-    cheerioQuery('.searchkekka_box').each(function (i, e) {
-      // get div with link and name
-      const novelDIV = cheerioQuery(this).find('.novel_h');
-      // get link element
-      const novelA = novelDIV.children()[0];
-      // add new novel to array
-      pageNovels.push({
-        novelName: novelDIV.text(), // get the name
-        novelUrl: getLastPartOfUrl(novelA.attribs.href), // get last part of the link
-        sourceId,
-        novelCover, // TODO: IDK what to do about covers... On Syo they don't have them
-      });
+    novels.push({
+      novelName: cheerioQuery(this).find('.novel_h').text(),
+      novelUrl: getLastPartOfUrl(novelA),
+      sourceId,
+      novelCover,
     });
-    // return all novels from this page
-    return pageNovels;
-  };
+  });
 
-  // counter of loaded pages
-  // let pagesLoaded = 0;
-  // do {
-  //     // always load first one
-  //     novels.push(...(await getNovelsFromPage(pagesLoaded + 1)));
-  //     pagesLoaded++;
-  // } while (pagesLoaded < maxPageLoad && isNext); // check if we should load more
-
-  novels = await getNovelsFromPage(1);
-
-  /** Use
-   * novels.push(...(await getNovelsFromPage(pageNumber)))
-   * if you want to load more
-   */
-
-  // respond with novels!
   return novels;
 };
 
