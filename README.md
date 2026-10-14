@@ -8,8 +8,8 @@ This fork is maintained independently. **No support or assistance will be provid
 
 ## Looking for LNReader?
 
-- **Download v1.1.19**: Get the official release from [LNReader/lnreader releases](https://github.com/LNReader/lnreader/releases/tag/v1.1.19)
-- **Recommended**: Try the [latest LNReader version](https://github.com/LNReader/lnreader/releases) - it may be sufficient for your needs
+- **Download this fork**: get releases from [chief-afk/lnreader-v1 releases](https://github.com/chief-afk/lnreader-v1/releases)
+- **Upstream project**: [LNReader/lnreader](https://github.com/LNReader/lnreader) (the v2 line; not this fork)
 
 ## About This Fork
 

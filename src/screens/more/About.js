@@ -31,39 +31,17 @@ const AboutScreen = ({ navigation }) => {
             title="What's new"
             onPress={() =>
               Linking.openURL(
-                `https://github.com/LNReader/lnreader/releases/tag/v${appVersion}`,
+                `https://github.com/chief-afk/lnreader-v1/releases/tag/v${appVersion}`,
               )
             }
             theme={theme}
           />
           <List.Divider theme={theme} />
           <List.Item
-            title="Discord"
-            description="https://discord.gg/QdcWN4MD63"
-            onPress={() => Linking.openURL('https://discord.gg/QdcWN4MD63')}
-            theme={theme}
-          />
-          <List.Item
             title="Github"
-            description="https://github.com/LNReader/lnreader"
+            description="https://github.com/chief-afk/lnreader-v1"
             onPress={() =>
-              Linking.openURL('https://github.com/LNReader/lnreader')
-            }
-            theme={theme}
-          />
-          <List.Item
-            title="Sources"
-            description="https://github.com/LNReader/lnreader-sources"
-            onPress={() =>
-              Linking.openURL('https://github.com/LNReader/lnreader-sources')
-            }
-            theme={theme}
-          />
-          <List.Item
-            title="Help translate"
-            description="https://crowdin.com/project/lnreader"
-            onPress={() =>
-              Linking.openURL('https://crowdin.com/project/lnreader')
+              Linking.openURL('https://github.com/chief-afk/lnreader-v1')
             }
             theme={theme}
           />

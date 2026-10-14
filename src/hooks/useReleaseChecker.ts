@@ -6,7 +6,7 @@ import { appVersion } from '../utils/versionUtils';
 import { showToast } from './showToast';
 
 const LATEST_RELEASE_URL =
-  'https://api.github.com/repos/LNReader/lnreader/releases/latest';
+  'https://api.github.com/repos/chief-afk/lnreader-v1/releases/latest';
 
 export interface NewRelease {
   tagName: string;
@@ -41,9 +41,13 @@ export const useReleaseChecker = () => {
       }
 
       const newReleaseRes = await fetch(LATEST_RELEASE_URL);
+      if (!newReleaseRes.ok) {
+        // the fork has no releases yet; do not surface a 404 as an error
+        return;
+      }
       const newReleaseJSON = await newReleaseRes.json();
 
-      if (isNewVersion(newReleaseJSON.tag_name)) {
+      if (newReleaseJSON.tag_name && isNewVersion(newReleaseJSON.tag_name)) {
         setNewRelease({
           changelog: newReleaseJSON.body,
           downloadUrl: newReleaseJSON.assets[0].browser_download_url,

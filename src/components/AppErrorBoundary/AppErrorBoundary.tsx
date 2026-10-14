@@ -25,8 +25,8 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
         </Text>
         <Text style={[styles.errorDesc, { color: theme.onSurface }]}>
           The application ran into an unexpected error. We suggest you
-          screenshot this message and then share it in our support channel on
-          Discord.
+          screenshot this message and then report it at
+          github.com/chief-afk/lnreader-v1/issues.
         </Text>
         <Text
           style={[
