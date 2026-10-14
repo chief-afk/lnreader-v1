@@ -30,14 +30,23 @@ nice-to-have:
 
 ## Versioning (hard rule)
 
-- Every fork release lives in the **1.2.x** line: 1.2.0, 1.2.1, 1.2.2, ...
-- Never release as, or rebrand to, 1.3+, 2.x, or anything colliding with
-  upstream versioning. The 1.2.x line keeps fork releases distinct from
-  upstream history forever.
+- The fork ships two release lines, both kept clear of upstream
+  versioning forever:
+  - **1.2.x** is the refurbed classic: the v1 architecture with
+    bundled sources, kept alive for patches and fixes.
+  - **1.3.x** is the stable line going forward: it adds v2 plugin
+    support (the community-maintained source ecosystem, so the app
+    stays functional long term) and is the line where unwanted
+    complexity gets trimmed.
+- Why this is safe: upstream ended its v1 line at 1.1.19 and jumped
+  straight to 2.0.0, so the entire 1.3+ range is permanently unclaimed
+  by upstream and can never collide. What stays forbidden is 2.x (and
+  anything else upstream actually uses).
 - `src/utils/versionUtils.ts` `appVersion` must match the released
   package.json version at tag time.
-- Releases are git tags `v1.2.x` pushed to chief-afk/lnreader-v1; the
-  tag-triggered workflow builds and publishes the signed APK.
+- Releases are git tags (`v1.2.x`, `v1.3.x`) pushed to
+  chief-afk/lnreader-v1; the tag-triggered workflow builds and
+  publishes the signed APK.
 - There is no CHANGELOG.md. Release highlights are written as the
   **annotated tag message** (one summary line, blank line, bullet
   list); `release.yml` turns it into the GitHub Release body on top of

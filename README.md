@@ -28,6 +28,17 @@ This fork is maintained independently. **No support or assistance will be provid
 - **Focus**: Maintaining v1 architecture while selectively adding improvements
 - **Support**: None provided
 
+## Release lines
+
+- **1.2.x** - the refurbed classic. The v1 architecture and bundled
+  sources, kept alive with patches and fixes. Current release:
+  [1.2.0](https://github.com/chief-afk/lnreader-v1/releases/tag/v1.2.0).
+- **1.3.x (upcoming)** - adds support for the community-maintained v2
+  plugin ecosystem (300+ actively maintained sources), so the app
+  stays functional long term instead of rotting with its bundled
+  sources. This line is also where accumulated complexity gets
+  trimmed. The v1 app design you like does not change.
+
 ## What this fork changes over official v1.1.19
 
 - Runs on current React Native (0.82, new architecture, Hermes), so it
