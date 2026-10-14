@@ -23,9 +23,35 @@ This fork is maintained independently. **No support or assistance will be provid
   reading progress, and history are never dropped or reset by an update.
   Upstream v2 is a rewrite with a new data layer that abandons downloads
   and reading progress on migration; this fork will not do that to v1 data.
-- **Releases**: Changes will be published as version 1.2.x (eg maintenance of dependencies or critical fixes)
+- **Releases**: published as 1.2.x; each release's notes live on the
+  [Releases page](https://github.com/chief-afk/lnreader-v1/releases)
 - **Focus**: Maintaining v1 architecture while selectively adding improvements
 - **Support**: None provided
+
+## What this fork changes over official v1.1.19
+
+- Runs on current React Native (0.82, new architecture, Hermes), so it
+  builds and installs correctly on modern Android.
+- Working sources: known-dead sources removed and broken source parsers
+  repaired against their live sites.
+- Backup and restore overhaul: richer fork backups (chapters with
+  read/bookmark flags, history, categories) plus a one-step import of
+  the official app's database for full reading state.
+- Bug fixes: novel refresh crash, reader and download regressions,
+  update checks pointing at this repository.
+
+## This fork vs upstream v2
+
+|         | This fork (v1.2.x)                  | Upstream v2                         |
+| ------- | ----------------------------------- | ----------------------------------- |
+| App     | Same v1 app and UI                  | Rewrite with a new UI               |
+| v1 data | Preserved; official v1 data imports | Dropped on migration                |
+| Sources | Maintained in this repo             | Separate plugins repo, more of them |
+| Support | None                                | Upstream's channels                 |
+
+Pick this fork if you are on official v1 and want the same app that
+keeps your data. Pick v2 if you want the newest UI and do not care
+about v1 data.
 
 ## Migrating from official LNReader v1
 
