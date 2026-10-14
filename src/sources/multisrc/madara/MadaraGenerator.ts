@@ -348,7 +348,12 @@ export const WebNovelOkuScraper = new MadaraScraper(
   143,
   'https://www.webnoveloku.com/',
   'WebNovelOku ',
-  { 'lang': 'Turkish' },
+  {
+    'lang': 'Turkish',
+    'path': { 'novels': 'manga', 'novel': 'manga', 'chapter': 'manga' },
+    'useNewChapterEndpoint': true,
+    'popularSort': 'popular',
+  },
 );
 
 export const AsuraLightNovelScraper = new MadaraScraper(

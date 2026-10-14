@@ -413,7 +413,14 @@
     "baseUrl": "https://www.webnoveloku.com/",
     "sourceName": "WebNovelOku ",
     "options": {
-      "lang": "Turkish"
+      "lang": "Turkish",
+      "path": {
+        "novels": "manga",
+        "novel": "manga",
+        "chapter": "manga"
+      },
+      "useNewChapterEndpoint": true,
+      "popularSort": "popular"
     }
   },
   {

@@ -336,13 +336,6 @@
     "lang": "English"
   },
   {
-    "sourceId": 65,
-    "url": "https://readwebnovels.net/",
-    "sourceName": "ReadWebNovels",
-    "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/multisrc/madara/icons/readwebnovels.png?raw=true",
-    "lang": "English"
-  },
-  {
     "sourceId": 66,
     "url": "https://wbnovel.com/",
     "sourceName": "WBNovel",
@@ -519,7 +512,7 @@
   },
   {
     "sourceId": 97,
-    "url": "https://novelbuddy.io/",
+    "url": "https://novelbuddy.me/",
     "sourceName": "Novel Buddy",
     "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/novelfullme/icon.png?raw=true",
     "lang": "English"

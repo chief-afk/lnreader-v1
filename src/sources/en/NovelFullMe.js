@@ -1,110 +1,110 @@
-import * as cheerio from 'cheerio';
 const sourceId = 97;
 const sourceName = 'Novel Buddy';
 
-const baseUrl = 'https://novelbuddy.io/';
+// the site relaunched on the .me domain as a Next.js app; listings and
+// chapter content come from its JSON API, the novel page from the
+// server-rendered __NEXT_DATA__ payload
+const baseUrl = 'https://novelbuddy.me/';
+const apiUrl = 'https://api.novelbuddy.me/';
 
-const popularNovels = async page => {
-  const url = `${baseUrl}popular?page=${page}`;
+// the source sprinkles "free novel" and similar words rendered in
+// decorative unicode lookalikes into chapter text to break scrapers
+const fwnRegex =
+  /(?:𝐟|ᵮ|𝑓|𝒇|𝒻|𝓯|𝔣|𝕗|𝖿|𝗳|𝙛|𝚏|ꬵ|ꞙ|ẝ|𝖋|ⓕ|ｆ|ḟ|ʃ|բ|ᶠ|⒡|ſ|ꊰ|ʄ|∱|ᶂ|𝘧|\bf)(?:𝚛|ꭇ|ᣴ|ℾ|𝚪|𝛤|𝜞|𝝘|𝞒|Ⲅ|Г|Ꮁ|ᒥ|ꭈ|ⲅ|ꮁ|ⓡ|ｒ|ŕ|ṙ|ř|ȑ|ȓ|ṛ|ṝ|ŗ|г|Ր|ɾ|ᥬ|ṟ|ɍ|ʳ|⒭|ɼ|ѓ|ᴦ|ᶉ|𝐫|𝑟|𝒓|𝓇|𝓻|𝔯|𝕣|𝖗|𝗋|𝗿|𝘳|𝙧|ᵲ|ґ|ᵣ|r)(?:ə|ә|ⅇ|ꬲ|ꞓ|⋴|𝛆|𝛜|𝜀|𝜖|𝜺|𝝐|𝝴|𝞊|𝞮|𝟄|ⲉ|ꮛ|𐐩|Ꞓ|Ⲉ|⍷|𝑒|𝓮|𝕖|𝖊|𝘦|𝗲|𝚎|𝙚|𝒆|𝔢|𝖾|𝐞|Ҿ|ҿ|ⓔ|ｅ|⒠|è|ᧉ|é|ᶒ|ê|ɘ|ἔ|ề|ế|ễ|૯|ǝ|є|ε|ē|ҽ|ɛ|ể|ẽ|ḕ|ḗ|ĕ|ė|ë|ẻ|ě|ȅ|ȇ|ẹ|ệ|ȩ|ɇ|ₑ|ę|ḝ|ḙ|ḛ|℮|е|ԑ|ѐ|ӗ|ᥱ|ё|ἐ|ἑ|ἒ|ἓ|ἕ|ℯ|e)+(?:𝐰|ꝡ|𝑤|𝒘|𝓌|𝔀|𝔴|𝕨|𝖜|𝗐|𝘄|𝘸|𝙬|𝚠|ա|ẁ|ꮃ|ẃ|ⓦ|⍵|ŵ|ẇ|ẅ|ẘ|ẉ|ⱳ|ὼ|ὠ|ὡ|ὢ|ὣ|ω|ὤ|ὥ|ὦ|ὧ|ῲ|ῳ|ῴ|ῶ|ῷ|Ⱳ|ѡ|ԝ|ᴡ|ώ|ᾠ|ᾡ|ᾡ|ᾢ|ᾣ|ᾤ|ᾥ|ᾦ|ɯ|𝝕|𝟉|𝞏|w)(?:ə|ә|ⅇ|ꬲ|ꞓ|⋴|𝛆|𝛜|𝜀|𝜖|𝜺|𝝐|𝝴|𝞊|𝞮|𝟄|ⲉ|ꮛ|𐐩|Ꞓ|Ⲉ|⍷|𝑒|𝓮|𝕖|𝖊|𝘦|𝗲|𝚎|𝙚|𝒆|𝔢|𝖾|𝐞|Ҿ|ҿ|ⓔ|ｅ|⒠|è|ᧉ|é|ᶒ|ê|ɘ|ἔ|ề|ế|ễ|૯|ǝ|є|ε|ē|ҽ|ɛ|ể|ẽ|ḕ|ḗ|ĕ|ė|ë|ẻ|ě|ȅ|ȇ|ẹ|ệ|ȩ|ɇ|ₑ|ę|ḝ|ḙ|ḛ|℮|е|ԑ|ѐ|ӗ|ᥱ|ё|ἐ|ἑ|ἒ|ἓ|ἕ|ℯ|e)(?:ꮟ|Ꮟ|𝐛|𝘣|𝒷|𝔟|𝓫|𝖇|𝖻|𝑏|𝙗|𝕓|𝒃|𝗯|𝚋|♭|ᑳ|ᒈ|ｂ|ᖚ|ᕹ|ᕺ|ⓑ|ḃ|ḅ|ҍ|ъ|ḇ|ƃ|ɓ|ƅ|ᖯ|Ƅ|Ь|ᑲ|þ|Ƃ|⒝|Ъ|ᶀ|ᑿ|ᒀ|ᒂ|ᒁ|ᑾ|ь|ƀ|Ҍ|Ѣ|ѣ|ᔎ |b)(?:ո|ռ|ח|𝒏|𝓷|𝙣|𝑛|𝖓|𝔫|𝗇|𝚗|𝗻|ᥒ|ⓝ|ή|ｎ|ǹ|ᴒ|ń|ñ|ᾗ|η|ṅ|ň|ṇ|ɲ|ņ|ṋ|ṉ|ղ|ຖ|Ռ|ƞ|ŋ|⒩|ภ|ก|ɳ|п|ŉ|л|ԉ|Ƞ|ἠ|ἡ|ῃ|դ|ᾐ|ᾑ|ᾒ|ᾓ|ᾔ|ᾕ|ᾖ|ῄ|ῆ|ῇ|ῂ|ἢ|ἣ|ἤ|ἥ|ἦ|ἧ|ὴ|ή|በ|ቡ|ቢ|ባ|ቤ|ብ|ቦ|ȵ|𝛈|𝜂|𝜼|𝝶|𝞰|𝕟|延|𝐧|𝔫|ᶇ|ᵰ|ᥥ|∩|n)(?:ం|ం|ം|ං|૦|௦|۵|ℴ|𝑜|𝒐|𝒐|ꬽ|𝝄|𝛔|𝜎|𝝈|𝞂|ჿ|𝚘|০|୦|ዐ|𝛐|𝗈|𝞼|ဝ|ⲟ|𝙤|၀|𐐬|𝔬|𐓪|𝓸|🇴|⍤|○|ϙ|🅾|𝒪|𝖮|𝟢|𝟶|𝙾|o|𝗼|𝕠|𝜊|𝐨|𝝾|𝞸|ᐤ|ｵ|ѳ|᧐|ᥲ|ð|ｏ|ఠ|ᦞ|Փ|ò|ө|ӧ|ó|º|ō|ô|ǒ|ȏ|ŏ|ồ|ȭ|ṏ|ὄ|ṑ|ṓ|ȯ|ȫ|๏|ᴏ|ő|ö|ѻ|о|ዐ|ǭ|ȱ|০|୦|٥|౦|告知|๐|໐|ο|օ|ᴑ|०|੦|ỏ|ơ|ờ|ớ|ỡ|ở|ợ|ọ|ộ|ǫ|ø|ǿ|ɵ|ծ|ὀ|ὁ|ό|ὸ|ό|ὂ|ὃ|ὅ|o)(?:∨|⌄|\|ⅴ|𝐯|𝑣|𝒗|𝓋|𝔳|𝕧|𝖛|ꮩ|ሀ|ⓥ|ｖ|𝜐|𝝊|ṽ|ṿ|౮|ง|ѵ|ע|ᴠ|ν|ט|ᵥ|ѷ|៴|ᘁ|𝙫|𝙫|𝛎|𝜈|𝝂|𝝼|𝞶|𝘷|𝘃|𝓿|v)(?:ə|ә|ⅇ|ꬲ|ꞓ|⋴|𝛆|𝛜|𝜀|𝜖|𝜺|𝝐|𝝴|𝞊|𝞮|𝟄|ⲉ|ꮛ|𐐩|Ꞓ|Ⲉ|⍷|𝑒|𝓮|𝕖|𝖊|𝘦|𝗲|𝚎|𝙚|𝒆|𝔢|𝖾|𝐞|Ҿ|ҿ|ⓔ|ｅ|⒠|è|ᧉ|é|ᶒ|ê|ɘ|ἔ|ề|ế|ễ|૯|ǝ|є|ε|ē|ҽ|ɛ|ể|ẽ|ḕ|ḗ|ĕ|ė|ë|ẻ|ě|ȅ|ȇ|ẹ|ệ|ȩ|ɇ|ę|ḝ|ḙ|ḛ|℮|е|ԑ|ѐ|ӗ|ᥱ|ё|ἐ|ἑ|ἒ|ἓ|ἕ|ℯ|e)(?:ⓛ|ｌ|ŀ|ĺ|ľ|ḷ|ḹ|ḷ|ļ|Ӏ|ℓ|ḽ|ḻ|ł|ﾚ|ɭ|ƚ|ɫ|ⱡ|\||\\|Ɩ|⒧|ʅ|ǀ|ו|ן|Ι|І|｜|ᶩ|ӏ|𝓘|𝕀|𝖨|𝗜|𝘐|𝐥|𝑙|𝒍|𝓁|𝔩|𝕝|𝖑|ލ|𝗅|𝗹|ލ|𝗅|𝗹|𝘭|𝚕|𝜤|𝝞|ı|𝚤|ɩ|ι|𝛊|𝜄|𝜾|𝞲|I|l)(?:.?(?:🝌|ｃ|ⅽ|𝐜|𝑐|𝒄|𝒸|𝓬|𝔠|𝕔|𝖈|𝖈|𝗰|𝘤|𝙘|𝚌|ᴄ|ϲ|ⲥ|с|ꮯ|𐐽|ⲥ|𐐽|ꮯ|ĉ|ｃ|ⓒ|ć|č|ċ|ç|ҁ|ƈ|ḉ|ȼ|ↄ|с|ር|ᴄ|ϲ|ҫ|꒝|ς|ɽ|ϛ|𝙲|ᑦ|᧚|𝐜|𝑐|𝒄|𝒸|𝓬|𝔠|𝕔|𝖈|𝖈|𝗰|𝘤|𝙘|𝚌|₵|🇨|ᥴ|ᒼ|ⅽ|c)(?:ం|ం|ം|ං|૦|௦|۵|ℴ|𝑜|𝒐|𝒐|ꬽ|𝝄|𝛔|𝜎|𝝈|𝞂|ჿ|𝚘|০|୦|ዐ|𝗈|𝞼|ဝ|ⲟ|𝙤|၀|𐐬|𝔬|𐓪|𝓸|🇴|⍤|○|ϙ|🅾|𝒪|𝖮|𝟢|𝟶|𝙾|o|𝗼|𝕠|𝜊|𝐨|𝝾|𝞸|ᐤ|ⓞ|ѳ|᧐|ᥲ|ð|ｏ|ఠ|ᦞ|Փ|ò|ө|ӧ|ó|º|ō|ô|ǒ|ȏ|ŏ|ồ|ȭ|ṏ|ὄ|ṑ|ṓ|ȯ|ȫ|๏|ᴏ|ő|ö|ѻ|о|ዐ|ǭ|ȱ|০|୦|٥|౦|告知|๐|໐|ο|օ|ᴑ|०|੦|ỏ|ơ|ờ|ớ|ỡ|ở|ợ|ọ|ộ|ǫ|ø|ǿ|ɵ|ծ|ὀ|ὁ|ό|ὸ|ό|ὂ|ὃ|ὅ|o)(?:₥|ᵯ|𝖒|𝐦|𝗆|𝔪|𝕞|𝕞|𝕞|ⓜ|ｍ|ന|ᙢ|൩|ḿ|ṁ|ⅿ|ϻ|ṃ|ጠ|ɱ|៳|ᶆ|𝒎|🇲|𝙢|𝓶|𝚖|𝑚|𝗺|᧕|᧗|m))?/g;
 
-  const result = await fetch(url);
-  const body = await result.text();
+const stripPromo = content =>
+  content
+    .replace(
+      /Find authorized novels in Webnovel.*?faster updates, better experience.*?Please click www\.webnovel\.com for visiting\./gi,
+      '',
+    )
+    .replace(fwnRegex, '');
 
-  const loadedCheerio = cheerio.load(body);
+const parseNextData = body => {
+  const scriptMatch = body.match(
+    /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/,
+  );
+  if (!scriptMatch) {
+    throw new Error('Could not find __NEXT_DATA__');
+  }
+  return JSON.parse(scriptMatch[1]).props.pageProps;
+};
 
-  let novels = [];
+const parseNovels = data =>
+  (data?.data?.items || []).map(item => ({
+    sourceId,
+    novelName: item.name,
+    novelCover: item.cover,
+    novelUrl: item.url.replace(/^\//, ''),
+  }));
 
-  loadedCheerio('.book-item').each(function () {
-    const novelName = loadedCheerio(this).find('.title').text();
-    const novelCover =
-      'https:' + loadedCheerio(this).find('img').attr('data-src');
-    const novelUrl =
-      baseUrl + loadedCheerio(this).find('.title a').attr('href').substring(1);
-
-    const novel = { sourceId, novelName, novelCover, novelUrl };
-
-    novels.push(novel);
-  });
-
-  return { novels };
+const popularNovels = async (page, { showLatestNovels }) => {
+  const sort = showLatestNovels ? 'latest' : 'views';
+  const result = await fetch(
+    `${apiUrl}titles/search?sort=${sort}&page=${page}&limit=24`,
+  );
+  return { novels: parseNovels(await result.json()) };
 };
 
 const parseNovelAndChapters = async novelUrl => {
-  const url = novelUrl;
+  const path = novelUrl.replace(/^https?:\/\/[^/]+\//, '');
+  const url = baseUrl + path;
 
   const result = await fetch(url);
   const body = await result.text();
 
-  let loadedCheerio = cheerio.load(body);
+  const manga = parseNextData(body).initialManga;
+  if (!manga) {
+    throw new Error('Could not find initialManga data');
+  }
+
+  const statusMap = {
+    ongoing: 'Ongoing',
+    hiatus: 'On Hiatus',
+    dropped: 'Cancelled',
+    cancelled: 'Cancelled',
+    completed: 'Completed',
+  };
 
   let novel = {
     sourceId,
     sourceName,
     url,
-    novelUrl,
-    novelName: '',
-    novelCover: '',
-    author: '',
-    status: '',
-    genre: '',
+    novelUrl: path,
+    novelName: manga.name || 'Untitled',
+    novelCover: manga.cover,
+    author: (manga.authors || []).map(a => a.name).join(', '),
+    status: statusMap[(manga.status || '').toLowerCase()] || 'Unknown',
+    genre: (manga.genres || []).map(g => g.name).join(','),
     summary: '',
     chapters: [],
   };
 
-  novel.novelName = loadedCheerio('.name h1').text().trim();
-
-  novel.novelCover =
-    'https:' + loadedCheerio('.img-cover img').attr('data-src');
-
-  novel.summary = loadedCheerio('div.summary > p').text().trim();
-
-  novel.author = loadedCheerio(
-    'body > div.layout > div.main-container.book-details > div > div.row.no-gutters > div.col-lg-8 > div.book-info > div.detail > div.meta.box.mt-1.p-10 > p:nth-child(1) > a > span',
-  )
-    .text()
-    ?.trim();
-
-  novel.status = loadedCheerio(
-    'body > div.layout > div.main-container.book-details > div > div.row.no-gutters > div.col-lg-8 > div.book-info > div.detail > div.meta.box.mt-1.p-10 > p:nth-child(2) > a > span',
-  )
-    .text()
-    ?.trim();
-
-  novel.genre = loadedCheerio(
-    'body > div.layout > div.main-container.book-details > div > div.row.no-gutters > div.col-lg-8 > div.book-info > div.detail > div.meta.box.mt-1.p-10 > p:nth-child(3)',
-  )
-    .text()
-    ?.replace('Genres :', '')
-    .replace(/[\s\n]+/g, ' ')
-    .trim();
-
-  let chapters = [];
-
-  const novelId = /bookId = (\d+);/.exec(loadedCheerio('script').text())[1];
-
-  const chaptersUrl = `https://novelbuddy.io/api/manga/${novelId}/chapters?source=detail`;
-
-  const chaptersRequest = await fetch(chaptersUrl);
-  const chaptersHtml = await chaptersRequest.text();
-
-  loadedCheerio = cheerio.load(chaptersHtml);
-
-  loadedCheerio('li').each(function () {
-    const chapterName = loadedCheerio(this)
-      .find('.chapter-title')
-      .text()
+  if (manga.summary) {
+    novel.summary = manga.summary
+      .replace(/<br\s*\/?>/g, '\n')
+      .replace(/<[^>]+>/g, '')
       .trim();
+  }
 
-    const releaseDate = loadedCheerio(this)
-      .find('.chapter-update')
-      .text()
-      .trim();
+  const chaptersRequest = await fetch(`${apiUrl}titles/${manga.id}/chapters`);
+  const chaptersJson = await chaptersRequest.json();
 
-    const chapterUrl =
-      baseUrl + loadedCheerio(this).find('a').attr('href').substring(1);
+  let chapters = (chaptersJson?.data?.chapters || []).map(chapter => ({
+    chapterName: chapter.name,
+    releaseDate: chapter.updated_at,
+    chapterUrl:
+      chapter.url.replace(/^\//, '') +
+      `?id=${manga.id}&chapterId=${chapter.id}`,
+  }));
 
-    chapters.push({ chapterName, releaseDate, chapterUrl });
-  });
+  if (!chapters.length && manga.chapters) {
+    chapters = manga.chapters.map(chapter => ({
+      chapterName: chapter.name,
+      releaseDate: chapter.updatedAt,
+      chapterUrl: chapter.url.replace(/^\//, ''),
+    }));
+  }
 
   novel.chapters = chapters.reverse();
 
@@ -112,53 +112,41 @@ const parseNovelAndChapters = async novelUrl => {
 };
 
 const parseChapter = async (novelUrl, chapterUrl) => {
-  const url = chapterUrl;
+  const novelId = /[?&]id=([^&]+)/.exec(chapterUrl)?.[1];
+  const chapterId = /[?&]chapterId=([^&]+)/.exec(chapterUrl)?.[1];
 
-  const result = await fetch(url);
-  const body = await result.text();
+  if (!novelId || !chapterId) {
+    throw new Error('Chapter url is missing id/chapterId');
+  }
 
-  let loadedCheerio = cheerio.load(body);
+  const result = await fetch(
+    `${apiUrl}titles/${novelId}/chapters/${chapterId}`,
+  );
+  const json = await result.json();
 
-  loadedCheerio('#listen-chapter').remove();
-  loadedCheerio('#google_translate_element').remove();
-
-  const chapterName = loadedCheerio('#chapter__content > h1').text();
-  const chapterText = loadedCheerio('.chapter__content').html();
+  const content = json?.data?.chapter?.content || '';
+  if (!content) {
+    throw new Error('Chapter content is empty');
+  }
 
   const chapter = {
     sourceId,
     novelUrl,
     chapterUrl,
-    chapterName,
-    chapterText,
+    chapterName: json?.data?.chapter?.name || '',
+    chapterText: stripPromo(content),
   };
 
   return chapter;
 };
 
 const searchNovels = async searchTerm => {
-  const url = `${baseUrl}search?q=${searchTerm}`;
-
-  const result = await fetch(url);
-  const body = await result.text();
-
-  let loadedCheerio = cheerio.load(body);
-
-  let novels = [];
-
-  loadedCheerio('.book-item').each(function () {
-    const novelName = loadedCheerio(this).find('.title').text();
-    const novelCover =
-      'https:' + loadedCheerio(this).find('img').attr('data-src');
-    const novelUrl =
-      baseUrl + loadedCheerio(this).find('.title a').attr('href').substring(1);
-
-    const novel = { sourceId, novelName, novelCover, novelUrl };
-
-    novels.push(novel);
-  });
-
-  return novels;
+  const result = await fetch(
+    `${apiUrl}titles/search?q=${encodeURIComponent(
+      searchTerm,
+    )}&limit=24&page=1`,
+  );
+  return parseNovels(await result.json());
 };
 
 const NovelFullMeScraper = {

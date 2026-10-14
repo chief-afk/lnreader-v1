@@ -15,12 +15,13 @@ class MadaraScraper {
       chapter: 'novel',
     };
     this.useNewChapterEndpoint = options.useNewChapterEndpoint || false;
+    this.popularSort = options.popularSort || 'rating';
   }
 
   async popularNovels(page, { showLatestNovels }) {
     const sortOrder = showLatestNovels
       ? '?m_orderby=latest'
-      : '/?m_orderby=rating';
+      : `/?m_orderby=${this.popularSort}`;
 
     let url = this.baseUrl + this.path.novels + '/page/' + page + sortOrder;
     let sourceId = this.sourceId;
