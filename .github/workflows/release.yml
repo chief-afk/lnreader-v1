@@ -82,6 +82,9 @@ jobs:
             echo
             echo "### Changes"
             echo
+            # checkout can materialize the tag ref without the annotation
+            # object; force-fetch it so contents: falls back to nothing
+            git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
             git tag -l --format='%(contents:subject)%0a%0a%(contents:body)' "$GITHUB_REF_NAME"
           } > release-notes.md
 
