@@ -41,14 +41,25 @@ Maintained independently. **No support or assistance will be provided.**
 
 ## This fork vs upstream v2
 
-|         | This fork                    | Upstream v2                 |
-| ------- | ---------------------------- | --------------------------- |
-| App     | Same v1 app and UI           | Rewrite with a new UI       |
-| v1 data | Preserved; imports v1        | Dropped on migration        |
-| Sources | Fixed here; plugins in 1.3.x | Separate repo, more of them |
+Upstream 2.0 is a ground-up rewrite: new UI, new navigation, a new
+reader, new storage, a new plugin system. It is a different app that
+carries the same name. The pains listed below are design consequences
+of that rewrite, not bugs it will grow out of. This fork is built on
+the opposite contract: the v1 app keeps working and your data never
+moves.
 
-Pick this fork to keep the v1 app and your data. Pick v2 for the new UI
-if you do not care about v1 data.
+|           | This fork                                                            | Upstream v2                                                                     |
+| --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| App       | Same v1 app and UI. Updates fix things; they never redesign them.    | New navigation, themes, icons, reader, and settings layout.                     |
+| v1 data   | Library, reading progress, history, bookmarks, and categories are all kept. One-step full import from the official app. | Downloads and reading progress do not transfer from v1. |
+| TTS       | Play/pause in the reader toolbar, one tap, as it has always been.    | Redesigned around a draggable floating icon whose position resets.              |
+| Updates   | Small, tested patches on a pinned, stable stack.                     | Fast-moving rewrite; releases have shipped install failures, update bugs, and lost libraries. |
+| Sources   | Bundled sources today; support for the v2 plugin ecosystem lands in 1.3.x. | A larger ecosystem, but nothing preinstalled: you add sources yourself.         |
+| Direction | Frozen on purpose: fixes and plugin support only.                    | Active new-feature development on the new base.                                 |
+
+Use v2 for the new UI and newer features. Use this fork only if you
+want the good old v1 look and feel, with no unexpected updates
+breaking your library.
 
 ## Migrating from official LNReader v1
 
