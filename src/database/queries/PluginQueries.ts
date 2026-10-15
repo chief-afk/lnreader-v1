@@ -59,6 +59,16 @@ export const getAllPlugins = (): InstalledPlugin[] => {
  */
 const PLUGIN_SOURCE_ID_FLOOR = 1000;
 
+const nextPluginSourceId = (): number => {
+  const highestId = db.getFirstSync<{ nextId: number }>(
+    'SELECT IFNULL(MAX(sourceId), 0) + 1 AS nextId FROM installedPlugins',
+  );
+  return Math.max(
+    PLUGIN_SOURCE_ID_FLOOR,
+    highestId?.nextId ?? PLUGIN_SOURCE_ID_FLOOR,
+  );
+};
+
 /**
  * Inserts the plugin row or refreshes the existing one, keyed by
  * pluginId. Reinstalling keeps the original numeric sourceId stable.
@@ -83,13 +93,7 @@ export const upsertPlugin = (plugin: PluginUpsertValues): number => {
     );
     return existing.sourceId;
   }
-  const highestId = db.getFirstSync<{ nextId: number }>(
-    'SELECT IFNULL(MAX(sourceId), 0) + 1 AS nextId FROM installedPlugins',
-  );
-  const sourceId = Math.max(
-    PLUGIN_SOURCE_ID_FLOOR,
-    highestId?.nextId ?? PLUGIN_SOURCE_ID_FLOOR,
-  );
+  const sourceId = nextPluginSourceId();
   db.runSync(
     `INSERT INTO installedPlugins
        (sourceId, pluginId, name, site, lang, version, iconUrl, repoUrl)
@@ -122,7 +126,19 @@ export const updatePluginVersion = (
   ]);
 };
 
+/**
+ * Records a failure on the plugin row, inserting a minimal row keyed
+ * by pluginId when the plugin has none yet (a first-install failure
+ * runs before upsertPlugin), so the error message always persists.
+ */
 export const setPluginError = (pluginId: string, error: string): void => {
+  if (!getPluginByPluginId(pluginId)) {
+    db.runSync(
+      'INSERT INTO installedPlugins (sourceId, pluginId, error) VALUES (?, ?, ?)',
+      [nextPluginSourceId(), pluginId, error],
+    );
+    return;
+  }
   db.runSync('UPDATE installedPlugins SET error = ? WHERE pluginId = ?', [
     error,
     pluginId,

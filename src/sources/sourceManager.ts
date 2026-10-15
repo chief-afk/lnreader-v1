@@ -215,7 +215,7 @@ const pluginScraper = (sourceId: number): Scraper | undefined => {
   pluginScraperCache.set(sourceId, scraper);
   return scraper;
 };
-export const sourceManager = (sourceId: number): Scraper => {
+export const sourceManager = (sourceId: number): Scraper | undefined => {
   const scrapers: Record<number, Scraper> = {
     // @ts-ignore
     0: EPubSource, // @ts-ignore
