@@ -55,7 +55,7 @@ const MigrationNovels = ({ navigation, route }) => {
       if (isMounted.current === true) {
         try {
           const source = sourceManager(item.sourceId);
-          const data = await source.searchNovels(novelName);
+          const data = source ? await source.searchNovels(novelName) : [];
 
           setSearchResults(prevState =>
             prevState.map(sourceItem =>

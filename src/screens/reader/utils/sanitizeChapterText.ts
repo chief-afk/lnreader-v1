@@ -47,7 +47,7 @@ export const sanitizeChapterText = (
       text = textVide(text);
     }
 
-    if (options?.sourceId && sourceManager(options.sourceId).headers) {
+    if (options?.sourceId && sourceManager(options.sourceId)?.headers) {
       // Some documents might take a few seconds to be parsed, only do when necessary
       const loadedCheerio = loadCheerio(text);
       if (loadedCheerio('input[offline]').length === 0) {

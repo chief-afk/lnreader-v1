@@ -217,6 +217,9 @@ export const downloadChapter = async (
   chapterId: number,
 ) => {
   const source = sourceManager(sourceId);
+  if (!source) {
+    throw new Error('Source is not available');
+  }
   const chapter = await source.parseChapter(novelUrl, chapterUrl);
 
   if (!chapter.chapterText?.length) {

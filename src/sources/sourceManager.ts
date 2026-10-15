@@ -128,6 +128,9 @@ import {
 import SakuraNovelScraper from './id/sakuranovel';
 
 import { SourceChapter, SourceNovel, SourceNovelItem } from './types';
+import { adaptPluginToScraper } from '../plugins/adapter';
+import { getInstalledPlugin } from '../plugins/loader';
+import { getPluginBySourceId } from '../database/queries/PluginQueries';
 import AllNovelFullScraper from './en/allnovelfull';
 import FreeNovelUpdatesScraper from './en/freenovelupdates';
 import LightNovelReaderScraper from './en/LightNovelReader';
@@ -178,7 +181,7 @@ export interface SourceOptions {
   filters?: SelectedFilter;
 }
 
-interface Scraper {
+export interface Scraper {
   popularNovels: (
     pageNo: number,
     options?: SourceOptions,
@@ -192,6 +195,26 @@ interface Scraper {
   filters?: SourceFilter[];
   headers?: { [key: string]: string };
 }
+
+const pluginScraperCache = new Map<number, Scraper>();
+
+const pluginScraper = (sourceId: number): Scraper | undefined => {
+  const cached = pluginScraperCache.get(sourceId);
+  if (cached) {
+    return cached;
+  }
+  const pluginRow = getPluginBySourceId(sourceId);
+  if (!pluginRow) {
+    return undefined;
+  }
+  const plugin = getInstalledPlugin(pluginRow.pluginId);
+  if (!plugin) {
+    return undefined;
+  }
+  const scraper = adaptPluginToScraper(plugin, sourceId);
+  pluginScraperCache.set(sourceId, scraper);
+  return scraper;
+};
 export const sourceManager = (sourceId: number): Scraper => {
   const scrapers: Record<number, Scraper> = {
     // @ts-ignore
@@ -350,5 +373,5 @@ export const sourceManager = (sourceId: number): Scraper => {
     173: mtlNovelEsScraper, // @ts-ignore
   };
 
-  return scrapers[sourceId];
+  return scrapers[sourceId] ?? pluginScraper(sourceId);
 };

@@ -76,7 +76,8 @@
     "all": "All",
     "latest": "Latest",
     "addedToLibrary": "Added to library",
-    "removeFromLibrary": "Removed from library"
+    "removeFromLibrary": "Removed from library",
+    "debugInstallPlugin": "Install RoyalRoad plugin (debug)"
   },
   "readerScreen": {
     "finished": "Finished",

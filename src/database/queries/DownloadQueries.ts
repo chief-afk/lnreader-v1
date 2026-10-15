@@ -18,10 +18,11 @@ export const fetchAndInsertChapterInDb = async (
   chapterId: number,
   chapterUrl: string,
 ) => {
-  const chapter = await sourceManager(sourceId).parseChapter(
-    novelUrl,
-    chapterUrl,
-  );
+  const source = sourceManager(sourceId);
+  if (!source) {
+    throw new Error('Source is not available');
+  }
+  const chapter = await source.parseChapter(novelUrl, chapterUrl);
 
   db.withTransactionSync(() => {
     db.runSync(updateChapterDownloadedQuery, [chapterId]);

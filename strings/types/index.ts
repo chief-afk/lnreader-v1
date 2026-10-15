@@ -64,6 +64,7 @@ export interface StringMap {
   'browseScreen.latest': 'string';
   'browseScreen.addedToLibrary': 'string';
   'browseScreen.removeFromLibrary': 'string';
+  'browseScreen.debugInstallPlugin': 'string';
   'readerScreen.finished': 'string';
   'readerScreen.noNextChapter': 'string';
   'readerScreen.bottomSheet.textSize': 'string';

@@ -2,6 +2,9 @@ import { sourceManager } from '../../sources/sourceManager';
 
 export const fetchNovel = async (sourceId, novelUrl) => {
   const source = sourceManager(sourceId);
+  if (!source) {
+    throw new Error('Source is not available');
+  }
 
   const res = await source.parseNovelAndChapters(novelUrl);
 
@@ -26,6 +29,9 @@ export const fetchNovel = async (sourceId, novelUrl) => {
 
 export const fetchChapter = async (sourceId, novelUrl, chapterUrl) => {
   const source = sourceManager(sourceId);
+  if (!source) {
+    throw new Error('Source is not available');
+  }
 
   let chapter = await source.parseChapter(novelUrl, chapterUrl);
 
@@ -34,6 +40,9 @@ export const fetchChapter = async (sourceId, novelUrl, chapterUrl) => {
 
 export const fetchChapters = async (sourceId, novelUrl) => {
   const source = sourceManager(sourceId);
+  if (!source) {
+    throw new Error('Source is not available');
+  }
 
   const res = await source.parseNovelAndChapters(novelUrl);
 

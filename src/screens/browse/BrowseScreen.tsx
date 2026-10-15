@@ -1,5 +1,5 @@
 import { SectionList, StyleSheet, Text } from 'react-native';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { EmptyView, SearchbarV2 } from '../../components';
 import {
@@ -17,10 +17,16 @@ import {
 import { useTheme } from '@hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { useSearch } from '../../hooks';
+import { showToast } from '../../hooks/showToast';
+import { fetchManifest, installPlugin } from '../../plugins/loader';
 import SourceCard from './components/SourceCard/SourceCard';
 import { getString } from '../../../strings/translations';
 import { Source } from '../../sources/types';
 import TrackerCard from './discover/TrackerCard';
+
+// Dev-only: temporary plugin install entry, replaced by the plugin
+// browser in the next increment.
+const DEBUG_PLUGIN_ID = 'royalroad';
 
 const BrowseScreen = () => {
   const { navigate } = useNavigation();
@@ -80,6 +86,35 @@ const BrowseScreen = () => {
     [],
   );
 
+  const [isInstallingDebugPlugin, setIsInstallingDebugPlugin] = useState(false);
+
+  const handleDebugPluginInstall = useCallback(async () => {
+    if (isInstallingDebugPlugin) {
+      return;
+    }
+    setIsInstallingDebugPlugin(true);
+    showToast(getString('browseScreen.debugInstallPlugin'));
+    try {
+      const manifest = await fetchManifest();
+      const manifestItem = manifest.find(item => item.id === DEBUG_PLUGIN_ID);
+      if (!manifestItem) {
+        throw new Error(`"${DEBUG_PLUGIN_ID}" is not in the plugin manifest`);
+      }
+      const installed = await installPlugin(manifestItem);
+      navigateToSource({
+        sourceId: installed.sourceId,
+        sourceName: installed.name ?? manifestItem.name,
+        url: installed.site ?? manifestItem.site,
+        lang: manifestItem.lang,
+        icon: manifestItem.iconUrl,
+      });
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsInstallingDebugPlugin(false);
+    }
+  }, [isInstallingDebugPlugin, navigateToSource]);
+
   const searchbarActions = useMemo(
     () => [
       {
@@ -94,8 +129,12 @@ const BrowseScreen = () => {
         iconName: 'cog-outline',
         onPress: () => navigate('BrowseSettings' as never),
       },
+      {
+        iconName: 'puzzle',
+        onPress: handleDebugPluginInstall,
+      },
     ],
-    [],
+    [handleDebugPluginInstall],
   );
 
   const sections = useMemo(() => {

@@ -25,6 +25,11 @@ export const useBrowseSource = (
       if (isScreenMounted.current === true) {
         try {
           const source = sourceManager(sourceId);
+          if (!source) {
+            // Unknown source id (e.g. a legacy row): empty state.
+            setHasNextPage(false);
+            return;
+          }
           const res = await source.popularNovels(page, {
             showLatestNovels,
             filters,
@@ -102,7 +107,8 @@ export const useSearchSource = (sourceId: number) => {
     async (searchTerm: string) => {
       try {
         setIsSearching(true);
-        const res = await sourceManager(sourceId).searchNovels(searchTerm);
+        const source = sourceManager(sourceId);
+        const res = source ? await source.searchNovels(searchTerm) : [];
         setSearchResults(res);
       } catch (err) {
         setSearchError(`${err}`);

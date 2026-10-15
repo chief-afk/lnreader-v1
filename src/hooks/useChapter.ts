@@ -25,7 +25,11 @@ const useChapter = (
       let res: Chapter = await getChapterFromDb(chapterId);
 
       if (!res) {
-        res = await sourceManager(sourceId).parseChapter(novelUrl, chapterUrl);
+        const source = sourceManager(sourceId);
+        if (!source) {
+          throw new Error('Source is not available');
+        }
+        res = await source.parseChapter(novelUrl, chapterUrl);
       }
 
       let chapterText = sanitize(

@@ -49,9 +49,8 @@ export const useGlobalSearch = ({ defaultSearchText }: Props) => {
     sources.forEach(async source => {
       if (isMounted.current) {
         try {
-          const res = await sourceManager(source.sourceId).searchNovels(
-            searchText,
-          );
+          const scraper = sourceManager(source.sourceId);
+          const res = scraper ? await scraper.searchNovels(searchText) : [];
 
           setSearchResults(prevState =>
             prevState.map(prevResult =>
