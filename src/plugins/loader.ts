@@ -91,18 +91,27 @@ export const validatePluginManifest = (
   return manifest as PluginManifestItem[];
 };
 
-const LOOPBACK_REPO_HOSTS = ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'];
+const LOOPBACK_REPO_HOSTS = ['localhost', '127.0.0.1', '::1', '10.0.2.2'];
 
 /**
  * Repositories must be https://; plain http is only accepted for
- * loopback hosts (local testing against the emulator).
+ * loopback hosts (local testing against the emulator). The host must
+ * come from parsed URL data: a string prefix check is spoofable via
+ * userinfo (http://localhost@evil.com parses to hostname evil.com).
  */
 export const assertRepoUrl = (rawUrl: string): string => {
   const url = rawUrl.trim();
-  if (LOOPBACK_REPO_HOSTS.some(host => url.startsWith(`http://${host}:`))) {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error('Repository URL must be an https:// URL');
+  }
+  const host = parsed.hostname.replace(/^\[|\]$/g, '');
+  if (parsed.protocol === 'http:' && LOOPBACK_REPO_HOSTS.includes(host)) {
     return url;
   }
-  if (!/^https:\/\/\S+$/i.test(url)) {
+  if (parsed.protocol !== 'https:') {
     throw new Error('Repository URL must be an https:// URL');
   }
   return url;
