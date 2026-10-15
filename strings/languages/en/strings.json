@@ -76,8 +76,16 @@
     "all": "All",
     "latest": "Latest",
     "addedToLibrary": "Added to library",
-    "removeFromLibrary": "Removed from library",
-    "debugInstallPlugin": "Install RoyalRoad plugin (debug)"
+    "removeFromLibrary": "Removed from library"
+  },
+  "pluginBrowser": {
+    "title": "Plugins",
+    "listEmpty": "No plugins found",
+    "install": "Install",
+    "update": "Update",
+    "uninstall": "Uninstall",
+    "installed": "Installed",
+    "retry": "Retry"
   },
   "readerScreen": {
     "finished": "Finished",

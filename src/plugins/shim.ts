@@ -32,6 +32,19 @@ export const getPluginDir = (pluginId: string): Directory =>
 export const getPluginDistFile = (pluginId: string): File =>
   new File(getPluginDir(pluginId), 'index.js');
 
+/**
+ * Removes the plugin's directory (dist and storage files) and drops
+ * the in-memory storage cache so a reinstall starts clean.
+ */
+export const deletePluginData = (pluginId: string): void => {
+  const validatedId = validatePluginId(pluginId);
+  storageStores.delete(validatedId);
+  const dir = getPluginDir(validatedId);
+  if (dir.exists) {
+    dir.delete();
+  }
+};
+
 // --- @libs/storage shim, backed by one JSON file per store ---
 
 interface StoredItem {

@@ -6,12 +6,14 @@ import {
 import { isUrlAbsolute } from '../utils/isAbsoluteUrl';
 import {
   clearPluginError,
+  deletePluginByPluginId,
   InstalledPlugin,
   setPluginError,
   upsertPlugin,
 } from '../database/queries/PluginQueries';
 import {
   createRequireShim,
+  deletePluginData,
   getPluginDistFile,
   PLUGIN_ID_PATTERN,
   validatePluginId,
@@ -162,6 +164,17 @@ export const installPlugin = async (
     }
     throw err instanceof Error ? err : new Error(String(err));
   }
+};
+
+/**
+ * Removes the stored dist and storage files, the installed row, and
+ * the cached instance.
+ */
+export const uninstallPlugin = (pluginId: string): void => {
+  const validatedId = validatePluginId(pluginId);
+  deletePluginData(validatedId);
+  deletePluginByPluginId(validatedId);
+  instanceCache.delete(validatedId);
 };
 
 /**

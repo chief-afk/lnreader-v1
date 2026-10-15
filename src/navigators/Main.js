@@ -26,6 +26,7 @@ import MigrateNovel from '../screens/browse/migration/MigrationNovels';
 import MalTopNovels from '../screens/browse/discover/MalTopNovels';
 import AniListTopNovels from '../screens/browse/discover/AniListTopNovels';
 import BrowseSettings from '../screens/browse/BrowseSettings';
+import PluginBrowserScreen from '../screens/browse/PluginBrowser/PluginBrowserScreen';
 import { useAppDispatch } from '@redux/hooks';
 import { updateLibraryAction } from '@redux/updates/updates.actions';
 import { useSettings } from '@hooks/reduxHooks';
@@ -65,6 +66,7 @@ const MainNavigator = () => {
         <Stack.Screen name="BrowseMal" component={MalTopNovels} />
         <Stack.Screen name="BrowseAL" component={AniListTopNovels} />
         <Stack.Screen name="BrowseSettings" component={BrowseSettings} />
+        <Stack.Screen name="PluginBrowser" component={PluginBrowserScreen} />
         <Stack.Screen
           name="GlobalSearchScreen"
           component={GlobalSearchScreen}
