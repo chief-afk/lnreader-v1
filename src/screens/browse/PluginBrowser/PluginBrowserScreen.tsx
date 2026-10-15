@@ -2,26 +2,35 @@ import { SectionList, StyleSheet, Text } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Appbar, EmptyView } from '../../../components';
+import { Appbar as PaperAppbar } from 'react-native-paper';
 import { useAppDispatch } from '../../../redux/hooks';
 import { getSourcesAction } from '../../../redux/source/sourcesSlice';
 import { useTheme } from '@hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { showToast } from '../../../hooks/showToast';
 import {
-  fetchManifest,
+  fetchRepoManifests,
   installPlugin,
+  RepoManifest,
+  resolvePluginRepos,
   uninstallPlugin,
 } from '../../../plugins/loader';
 import {
   InstalledPlugin,
   getAllPlugins,
 } from '../../../database/queries/PluginQueries';
+import {
+  InstalledRepository,
+  getAllRepositories,
+} from '../../../database/queries/RepoQueries';
 import { PluginManifestItem } from '../../../plugins/types';
 import { getString } from '../../../../strings/translations';
 import PluginCard from './PluginCard';
+import RepoManagerModal from './RepoManagerModal';
 
-interface PluginSection {
+interface RepoSection {
   title: string;
+  repoUrl: string;
   data: PluginManifestItem[];
 }
 
@@ -30,37 +39,64 @@ const PluginBrowserScreen = () => {
   const { goBack } = useNavigation();
   const dispatch = useAppDispatch();
 
-  const [manifest, setManifest] = useState<PluginManifestItem[] | null>(null);
-  const [manifestError, setManifestError] = useState('');
+  const [repoManifests, setRepoManifests] = useState<RepoManifest[] | null>(
+    null,
+  );
+  const [loadError, setLoadError] = useState('');
   const [installed, setInstalled] = useState<InstalledPlugin[]>([]);
+  const [repos, setRepos] = useState<InstalledRepository[]>([]);
+  const [reposVersion, setReposVersion] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showRepoManager, setShowRepoManager] = useState(false);
 
   const refreshInstalled = useCallback(() => {
     setInstalled(getAllPlugins());
   }, []);
 
+  const refreshRepos = useCallback(() => {
+    setRepos(getAllRepositories());
+  }, []);
+
+  const onReposChanged = useCallback(() => {
+    setReposVersion(version => version + 1);
+  }, []);
+
   useEffect(() => {
     refreshInstalled();
-  }, [refreshInstalled]);
+    refreshRepos();
+  }, [refreshInstalled, refreshRepos, reposVersion]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchManifest()
-      .then(items => {
-        if (!cancelled) {
-          setManifest(items);
-          setManifestError('');
+    fetchRepoManifests()
+      .then(results => {
+        if (cancelled) {
+          return;
+        }
+        resolvePluginRepos(results);
+        refreshInstalled();
+        setRepoManifests(results);
+        const failed = results.filter(result => result.error);
+        if (failed.length === results.length && failed.length > 0) {
+          setLoadError(failed[0].error ?? '');
+        } else {
+          setLoadError('');
+          failed.forEach(result =>
+            showToast(
+              `${result.repo.name ?? result.repo.repoUrl}: ${result.error}`,
+            ),
+          );
         }
       })
       .catch(err => {
         if (!cancelled) {
-          setManifestError(err instanceof Error ? err.message : String(err));
+          setLoadError(err instanceof Error ? err.message : String(err));
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshInstalled, reposVersion]);
 
   const installedByPluginId = useMemo(() => {
     const map = new Map<string, InstalledPlugin>();
@@ -68,35 +104,38 @@ const PluginBrowserScreen = () => {
     return map;
   }, [installed]);
 
-  const sections = useMemo<PluginSection[]>(() => {
-    if (!manifest) {
+  const sections = useMemo<RepoSection[]>(() => {
+    if (!repoManifests) {
       return [];
     }
-    const byLang = new Map<string, PluginManifestItem[]>();
-    manifest.forEach(item => {
-      const group = byLang.get(item.lang);
-      if (group) {
-        group.push(item);
-      } else {
-        byLang.set(item.lang, [item]);
-      }
-    });
-    return [...byLang.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([lang, items]) => ({
-        title: lang,
-        data: [...items].sort((a, b) => a.name.localeCompare(b.name)),
+    return repoManifests
+      .filter(({ items }) => items.length > 0)
+      .map(({ repo, items }) => ({
+        title: repo.name ?? repo.repoUrl,
+        repoUrl: repo.repoUrl,
+        data: [...items].sort(
+          (a, b) =>
+            a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name),
+        ),
       }));
-  }, [manifest]);
+  }, [repoManifests]);
+
+  // Updates and uninstalls only ever act through the plugin's recorded
+  // repo: a repo never overwrites another repo's plugin.
+  const canManage = useCallback(
+    (repoUrl: string, plugin: InstalledPlugin | undefined) =>
+      !plugin || !plugin.repoUrl || plugin.repoUrl === repoUrl,
+    [],
+  );
 
   const handleInstall = useCallback(
-    async (item: PluginManifestItem) => {
+    async (item: PluginManifestItem, repoUrl: string) => {
       if (busyId) {
         return;
       }
       setBusyId(item.id);
       try {
-        await installPlugin(item);
+        await installPlugin(item, repoUrl);
         dispatch(getSourcesAction());
       } catch (err) {
         showToast(err instanceof Error ? err.message : String(err));
@@ -131,16 +170,23 @@ const PluginBrowserScreen = () => {
         title={getString('pluginBrowser.title')}
         handleGoBack={goBack}
         theme={theme}
-      />
-      {manifestError ? (
-        <EmptyView icon="(･Д･。" description={manifestError} theme={theme} />
+      >
+        <PaperAppbar.Action
+          icon="source-branch"
+          onPress={() => setShowRepoManager(true)}
+          color={theme.onSurface}
+        />
+      </Appbar>
+      {loadError ? (
+        <EmptyView icon="(･Д･。" description={loadError} theme={theme} />
       ) : (
         <SectionList
           contentContainerStyle={styles.list}
           sections={sections}
           keyExtractor={item => item.id}
+          extraData={installedByPluginId}
           ListEmptyComponent={
-            manifest ? (
+            repoManifests ? (
               <EmptyView
                 icon="(･Д･。"
                 description={getString('pluginBrowser.listEmpty')}
@@ -160,19 +206,31 @@ const PluginBrowserScreen = () => {
               </Text>
             ) : null
           }
-          renderItem={({ item }) => (
-            <PluginCard
-              item={item}
-              installed={installedByPluginId.get(item.id)}
-              busy={busyId === item.id}
-              theme={theme}
-              onInstall={handleInstall}
-              onRetry={handleInstall}
-              onUninstall={handleUninstall}
-            />
-          )}
+          renderItem={({ item, section }) => {
+            const plugin = installedByPluginId.get(item.id);
+            return (
+              <PluginCard
+                item={item}
+                installed={plugin}
+                canManage={canManage(section.repoUrl, plugin)}
+                busy={busyId === item.id}
+                theme={theme}
+                onInstall={installItem =>
+                  handleInstall(installItem, section.repoUrl)
+                }
+                onRetry={retryItem => handleInstall(retryItem, section.repoUrl)}
+                onUninstall={handleUninstall}
+              />
+            );
+          }}
         />
       )}
+      <RepoManagerModal
+        visible={showRepoManager}
+        closeModal={() => setShowRepoManager(false)}
+        repos={repos}
+        onReposChanged={onReposChanged}
+      />
     </>
   );
 };

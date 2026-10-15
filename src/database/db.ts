@@ -26,6 +26,10 @@ import {
   createDefaultCategoryQuery,
 } from './tables/CategoryTable';
 import { createInstalledPluginsTableQuery } from './tables/InstalledPluginsTable';
+import {
+  createInstalledRepositoriesTableQuery,
+  createOfficialRepositoryQuery,
+} from './tables/InstalledRepositoriesTable';
 
 const dbName = 'lnreader.db';
 
@@ -49,6 +53,8 @@ const createTables = () => {
     db.runSync(createDownloadTableQuery);
     db.runSync(createUpdatesTableQuery);
     db.runSync(createInstalledPluginsTableQuery);
+    db.runSync(createInstalledRepositoriesTableQuery);
+    db.runSync(createOfficialRepositoryQuery);
   });
 };
 

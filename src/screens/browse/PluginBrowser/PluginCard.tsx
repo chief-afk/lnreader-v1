@@ -12,6 +12,8 @@ import { newer } from '../../../utils/compareVersion';
 interface Props {
   item: PluginManifestItem;
   installed: InstalledPlugin | undefined;
+  /** False when the plugin is installed from a different repo. */
+  canManage: boolean;
   busy: boolean;
   theme: ThemeColors;
   onInstall: (item: PluginManifestItem) => void;
@@ -22,6 +24,7 @@ interface Props {
 const PluginCard = ({
   item,
   installed,
+  canManage,
   busy,
   theme,
   onInstall,
@@ -57,13 +60,17 @@ const PluginCard = ({
         </View>
       </View>
       <View style={styles.actions}>
-        {installed?.error ? (
+        {installed && canManage && installed.error ? (
           <Button
             title={getString('pluginBrowser.retry')}
             textColor={theme.primary}
             onPress={() => onRetry(item)}
             disabled={busy}
           />
+        ) : installed && !canManage ? (
+          <Text style={{ color: theme.primary }}>
+            {getString('pluginBrowser.installed')}
+          </Text>
         ) : installed ? (
           hasUpdate ? (
             <Button
@@ -85,7 +92,7 @@ const PluginCard = ({
             disabled={busy}
           />
         )}
-        {installed ? (
+        {installed && canManage ? (
           <Button
             title={getString('pluginBrowser.uninstall')}
             textColor={theme.error}

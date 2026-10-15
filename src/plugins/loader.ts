@@ -7,8 +7,10 @@ import { isUrlAbsolute } from '../utils/isAbsoluteUrl';
 import {
   clearPluginError,
   deletePluginByPluginId,
+  getAllPlugins,
   InstalledPlugin,
   setPluginError,
+  updatePluginRepo,
   upsertPlugin,
 } from '../database/queries/PluginQueries';
 import {
@@ -18,10 +20,14 @@ import {
   PLUGIN_ID_PATTERN,
   validatePluginId,
 } from './shim';
+import { OFFICIAL_PLUGIN_MANIFEST_URL } from './constants';
+import {
+  InstalledRepository,
+  getEnabledRepositories,
+} from '../database/queries/RepoQueries';
 import { Plugin, PluginImageRequestInit, PluginManifestItem } from './types';
 
-export const OFFICIAL_PLUGIN_MANIFEST_URL =
-  'https://raw.githubusercontent.com/LNReader/lnreader-plugins/plugins/v3.0.0/.dist/plugins.min.json';
+export { OFFICIAL_PLUGIN_MANIFEST_URL };
 
 const instanceCache = new Map<string, Plugin>();
 
@@ -44,6 +50,115 @@ export const fetchManifest = async (
     throw new Error('Plugin manifest has an unexpected format');
   }
   return manifest;
+};
+
+/**
+ * Manifest fields every plugin entry must carry for the app to work
+ * (the same fields Phase 2's listing, install, and catalog merge use).
+ */
+const REQUIRED_MANIFEST_FIELDS = [
+  'id',
+  'name',
+  'site',
+  'lang',
+  'version',
+  'url',
+  'iconUrl',
+] as const;
+
+/**
+ * Add-time gate: the payload must parse as the plugins.min.json
+ * schema, i.e. an array of items carrying every required field.
+ */
+export const validatePluginManifest = (
+  manifest: unknown,
+): PluginManifestItem[] => {
+  if (!Array.isArray(manifest)) {
+    throw new Error('Plugin manifest has an unexpected format');
+  }
+  manifest.forEach((item, index) => {
+    if (typeof item !== 'object' || item === null) {
+      throw new Error(`Plugin manifest item ${index} is malformed`);
+    }
+    for (const field of REQUIRED_MANIFEST_FIELDS) {
+      if (typeof item[field] !== 'string' || !(item[field] as string).trim()) {
+        throw new Error(
+          `Plugin manifest item "${index}" is missing "${field}"`,
+        );
+      }
+    }
+  });
+  return manifest as PluginManifestItem[];
+};
+
+const LOOPBACK_REPO_HOSTS = ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'];
+
+/**
+ * Repositories must be https://; plain http is only accepted for
+ * loopback hosts (local testing against the emulator).
+ */
+export const assertRepoUrl = (rawUrl: string): string => {
+  const url = rawUrl.trim();
+  if (LOOPBACK_REPO_HOSTS.some(host => url.startsWith(`http://${host}:`))) {
+    return url;
+  }
+  if (!/^https:\/\/\S+$/i.test(url)) {
+    throw new Error('Repository URL must be an https:// URL');
+  }
+  return url;
+};
+
+export interface RepoManifest {
+  repo: InstalledRepository;
+  items: PluginManifestItem[];
+  error?: string;
+}
+
+/**
+ * Fetches every enabled repository's manifest. A failing repo never
+ * takes the others down: its error is reported on its own result.
+ */
+export const fetchRepoManifests = async (): Promise<RepoManifest[]> => {
+  const repos = getEnabledRepositories();
+  return Promise.all(
+    repos.map(async repo => {
+      try {
+        return { repo, items: await fetchManifest(repo.repoUrl) };
+      } catch (err) {
+        return { repo, items: [], error: errorMessage(err) };
+      }
+    }),
+  );
+};
+
+/**
+ * Re-points installed rows whose recorded repo is disabled or gone
+ * (e.g. backup-seeded rows, or plugins whose repo was removed) to the
+ * first enabled repo carrying the same pluginId. Plugins recorded to
+ * a live enabled repo are never touched: a repo never overwrites
+ * another repo's plugin.
+ */
+export const resolvePluginRepos = (repoManifests: RepoManifest[]): void => {
+  const enabledUrls = new Set(repoManifests.map(({ repo }) => repo.repoUrl));
+  const firstRepoByPluginId = new Map<string, RepoManifest>();
+  repoManifests.forEach(repoManifest => {
+    repoManifest.items.forEach(item => {
+      if (!firstRepoByPluginId.has(item.id)) {
+        firstRepoByPluginId.set(item.id, repoManifest);
+      }
+    });
+  });
+  getAllPlugins().forEach(plugin => {
+    if (plugin.repoUrl && enabledUrls.has(plugin.repoUrl)) {
+      return;
+    }
+    const target = plugin.pluginId
+      ? firstRepoByPluginId.get(plugin.pluginId)
+      : undefined;
+    if (target && target.repo.repoUrl !== plugin.repoUrl) {
+      updatePluginRepo(plugin.pluginId, target.repo.repoUrl);
+    }
+  });
 };
 
 /**

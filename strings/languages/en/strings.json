@@ -87,6 +87,21 @@
     "installed": "Installed",
     "retry": "Retry"
   },
+  "reposScreen": {
+    "title": "Repositories",
+    "add": "Add repository",
+    "added": "Repository added",
+    "urlPlaceholder": "https://example.com/plugins.min.json",
+    "invalidUrl": "URL must be an https:// URL",
+    "thirdPartyTitle": "Third-party repository",
+    "thirdPartyWarning": "Repositories run third-party code on your device. Only add repositories you trust.",
+    "removeTitle": "Remove repository",
+    "remove": "Remove",
+    "removeReportNone": "No installed plugins come from this repository.",
+    "removeReportOne": "installed plugin from this repository will keep working but won't receive updates.",
+    "removeReportMany": "installed plugins from this repository will keep working but won't receive updates.",
+    "officialTag": "Official"
+  },
   "readerScreen": {
     "finished": "Finished",
     "noNextChapter": "There's no next chapter",

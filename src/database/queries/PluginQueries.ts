@@ -127,6 +127,18 @@ export const updatePluginVersion = (
 };
 
 /**
+ * Re-points a plugin row at a repository. Used by the repo scan when
+ * a row's recorded repo is disabled or gone; keeps the numeric
+ * sourceId and every other field untouched.
+ */
+export const updatePluginRepo = (pluginId: string, repoUrl: string): void => {
+  db.runSync('UPDATE installedPlugins SET repoUrl = ? WHERE pluginId = ?', [
+    repoUrl,
+    pluginId,
+  ]);
+};
+
+/**
  * Records a failure on the plugin row, inserting a minimal row keyed
  * by pluginId when the plugin has none yet (a first-install failure
  * runs before upsertPlugin), so the error message always persists.
