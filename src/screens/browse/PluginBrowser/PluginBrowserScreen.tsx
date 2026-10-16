@@ -24,6 +24,7 @@ import {
   getAllRepositories,
 } from '../../../database/queries/RepoQueries';
 import { PluginManifestItem } from '../../../plugins/types';
+import { getPluginDistFile } from '../../../plugins/shim';
 import { getString } from '../../../../strings/translations';
 import PluginCard from './PluginCard';
 import RepoManagerModal from './RepoManagerModal';
@@ -33,6 +34,14 @@ interface RepoSection {
   repoUrl: string;
   data: PluginManifestItem[];
 }
+
+const isPluginDownloaded = (pluginId: string): boolean => {
+  try {
+    return getPluginDistFile(pluginId).exists;
+  } catch {
+    return false;
+  }
+};
 
 const PluginBrowserScreen = () => {
   const theme = useTheme();
@@ -104,11 +113,32 @@ const PluginBrowserScreen = () => {
     return map;
   }, [installed]);
 
+  /**
+   * Rows recorded without downloaded code (e.g. restored from a v2
+   * backup). Their repo may be disabled or gone, so they never show
+   * up in any manifest section and get their own listing.
+   */
+  const seededRows = useMemo(() => {
+    if (!repoManifests) {
+      return [];
+    }
+    const listed = new Set<string>();
+    repoManifests.forEach(({ items }) =>
+      items.forEach(item => listed.add(item.id)),
+    );
+    return installed.filter(plugin => {
+      if (plugin.error || listed.has(plugin.pluginId)) {
+        return false;
+      }
+      return !isPluginDownloaded(plugin.pluginId);
+    });
+  }, [repoManifests, installed]);
+
   const sections = useMemo<RepoSection[]>(() => {
     if (!repoManifests) {
       return [];
     }
-    return repoManifests
+    const manifestSections: RepoSection[] = repoManifests
       .filter(({ items }) => items.length > 0)
       .map(({ repo, items }) => ({
         title: repo.name ?? repo.repoUrl,
@@ -118,7 +148,23 @@ const PluginBrowserScreen = () => {
             a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name),
         ),
       }));
-  }, [repoManifests]);
+    if (seededRows.length) {
+      manifestSections.push({
+        title: getString('pluginBrowser.readyToInstall'),
+        repoUrl: '',
+        data: seededRows.map(row => ({
+          id: row.pluginId,
+          name: row.name ?? row.pluginId,
+          site: row.site ?? '',
+          lang: row.lang ?? '',
+          version: row.version ?? '',
+          url: '',
+          iconUrl: row.iconUrl ?? '',
+        })),
+      });
+    }
+    return manifestSections;
+  }, [repoManifests, seededRows]);
 
   // Updates and uninstalls only ever act through the plugin's recorded
   // repo: a repo never overwrites another repo's plugin.
@@ -208,11 +254,16 @@ const PluginBrowserScreen = () => {
           }
           renderItem={({ item, section }) => {
             const plugin = installedByPluginId.get(item.id);
+            const seeded =
+              !!plugin && !plugin.error && !isPluginDownloaded(plugin.pluginId);
             return (
               <PluginCard
                 item={item}
                 installed={plugin}
-                canManage={canManage(section.repoUrl, plugin)}
+                seeded={seeded}
+                canManage={
+                  section.repoUrl ? canManage(section.repoUrl, plugin) : false
+                }
                 busy={busyId === item.id}
                 theme={theme}
                 onInstall={installItem =>

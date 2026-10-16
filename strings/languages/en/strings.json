@@ -85,7 +85,9 @@
     "update": "Update",
     "uninstall": "Uninstall",
     "installed": "Installed",
-    "retry": "Retry"
+    "retry": "Retry",
+    "readyToInstall": "Ready to install",
+    "enableRepoToInstall": "Enable its repository to install this plugin"
   },
   "reposScreen": {
     "title": "Repositories",
@@ -282,5 +284,15 @@
     "downloadChapters": "downloaded Chapters",
     "noDownloads": "No downloads",
     "downloadsLower": "downloads"
+  },
+  "backupScreen": {
+    "importV2": "Import v2 backup",
+    "importV2Desc": "Pick a v2 app backup (zip) to import its library, history and plugins",
+    "importV2Finished": "v2 backup imported",
+    "novels": "novels",
+    "chapters": "chapters",
+    "historyEntries": "history entries",
+    "categoriesImported": "categories",
+    "pluginsSeeded": "plugins seeded"
   }
 }

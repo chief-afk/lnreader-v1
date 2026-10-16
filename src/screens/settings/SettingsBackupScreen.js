@@ -4,9 +4,57 @@ import { ScreenContainer } from '../../components/Common';
 
 import { createBackup, restoreBackup } from '../../services/backup/v1/backup';
 import { importLegacyDatabase } from '../../services/backup/v1/dbImport';
+import { importV2Backup } from '../../services/backup/v2/import';
 
 import { useTheme } from '@hooks/useTheme';
 import { Appbar, List } from '@components';
+import { showToast } from '../../hooks/showToast';
+import { getString } from '../../../strings/translations';
+
+const importV2BackupWithSummary = async () => {
+  try {
+    const summary = await importV2Backup();
+
+    if (!summary) {
+      return;
+    }
+
+    const parts = [
+      summary.novels.imported
+        ? summary.novels.imported + ' ' + getString('backupScreen.novels')
+        : '',
+      summary.chapters
+        ? summary.chapters + ' ' + getString('backupScreen.chapters')
+        : '',
+      summary.history.imported
+        ? summary.history.imported +
+          ' ' +
+          getString('backupScreen.historyEntries')
+        : '',
+      summary.categories.imported
+        ? summary.categories.imported +
+          ' ' +
+          getString('backupScreen.categoriesImported')
+        : '',
+      summary.plugins.seeded
+        ? summary.plugins.seeded + ' ' + getString('backupScreen.pluginsSeeded')
+        : '',
+    ].filter(Boolean);
+
+    if (!parts.length && summary.errors.length) {
+      showToast(summary.errors[0]);
+      return;
+    }
+
+    showToast(
+      getString('backupScreen.importV2Finished') +
+        (parts.length ? ': ' + parts.join(', ') : '') +
+        (summary.novels.failed ? ` (${summary.novels.failed} failed)` : ''),
+    );
+  } catch (error) {
+    showToast(error.message);
+  }
+};
 
 const BackupSettings = ({ navigation }) => {
   const theme = useTheme();
@@ -56,6 +104,17 @@ const BackupSettings = ({ navigation }) => {
           />
           <List.InfoItem
             title="Extracting the database needs root or adb; downloaded chapters do not transfer. See the README."
+            icon="information-outline"
+            theme={theme}
+          />
+          <List.Item
+            title={getString('backupScreen.importV2')}
+            description={getString('backupScreen.importV2Desc')}
+            onPress={importV2BackupWithSummary}
+            theme={theme}
+          />
+          <List.InfoItem
+            title="Downloaded chapter content does not transfer; the downloaded flag is kept and chapters re-fetch on open."
             icon="information-outline"
             theme={theme}
           />

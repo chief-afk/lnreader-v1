@@ -71,6 +71,8 @@ export interface StringMap {
   'pluginBrowser.uninstall': 'string';
   'pluginBrowser.installed': 'string';
   'pluginBrowser.retry': 'string';
+  'pluginBrowser.readyToInstall': 'string';
+  'pluginBrowser.enableRepoToInstall': 'string';
   'reposScreen.title': 'string';
   'reposScreen.add': 'string';
   'reposScreen.added': 'string';
@@ -219,4 +221,12 @@ export interface StringMap {
   'downloadScreen.downloadChapters': 'string';
   'downloadScreen.noDownloads': 'string';
   'downloadScreen.downloadsLower': 'string';
+  'backupScreen.importV2': 'string';
+  'backupScreen.importV2Desc': 'string';
+  'backupScreen.importV2Finished': 'string';
+  'backupScreen.novels': 'string';
+  'backupScreen.chapters': 'string';
+  'backupScreen.historyEntries': 'string';
+  'backupScreen.categoriesImported': 'string';
+  'backupScreen.pluginsSeeded': 'string';
 }

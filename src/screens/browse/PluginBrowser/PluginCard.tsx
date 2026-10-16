@@ -12,6 +12,12 @@ import { newer } from '../../../utils/compareVersion';
 interface Props {
   item: PluginManifestItem;
   installed: InstalledPlugin | undefined;
+  /**
+   * The row exists (e.g. restored from a backup) but its code was
+   * never downloaded: it renders with an install button instead of
+   * the installed label.
+   */
+  seeded?: boolean;
   /** False when the plugin is installed from a different repo. */
   canManage: boolean;
   busy: boolean;
@@ -24,6 +30,7 @@ interface Props {
 const PluginCard = ({
   item,
   installed,
+  seeded,
   canManage,
   busy,
   theme,
@@ -60,13 +67,27 @@ const PluginCard = ({
         </View>
       </View>
       <View style={styles.actions}>
-        {installed && canManage && installed.error ? (
+        {installed && canManage && seeded ? (
+          <Button
+            title={getString('pluginBrowser.install')}
+            textColor={theme.primary}
+            onPress={() => onInstall(item)}
+            disabled={busy}
+          />
+        ) : installed && canManage && installed.error ? (
           <Button
             title={getString('pluginBrowser.retry')}
             textColor={theme.primary}
             onPress={() => onRetry(item)}
             disabled={busy}
           />
+        ) : installed && !canManage && seeded ? (
+          <Text
+            style={[styles.description, { color: theme.primary }]}
+            numberOfLines={2}
+          >
+            {getString('pluginBrowser.enableRepoToInstall')}
+          </Text>
         ) : installed && !canManage ? (
           <Text style={{ color: theme.primary }}>
             {getString('pluginBrowser.installed')}
