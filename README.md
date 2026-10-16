@@ -66,7 +66,10 @@ breaking your library.
 The bundled catalog is trimmed on purpose. Sources whose sites died were
 removed in 1.3.0 rather than shipped as known-dead entries; the growth
 path is the community-maintained v2 plugin ecosystem, which the fork
-runs natively.
+runs natively. Browse reflects that: it defaults to installed plugins,
+and "Show legacy sources" in Browse settings reveals the bundled
+catalog for anyone who wants it. Restored backups and imports keep
+working with legacy sources either way.
 
 ### Plugins
 
