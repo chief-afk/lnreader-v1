@@ -134,16 +134,26 @@ const convertFilterValueBack = (
 export const convertSelectedFiltersToPlugin = (
   pluginFilters: PluginFilters | undefined,
   selectedFilters?: SelectedFilter,
-): Record<string, { value: unknown }> | undefined => {
-  if (!selectedFilters) {
+): Record<string, { type: FilterTypes; value: unknown }> | undefined => {
+  // Plugin dists read every filter key they declare (e.g.
+  // filters.genres.value) before fetching, so upstream's runtime always
+  // passes an object seeded with each filter's declared default value;
+  // passing undefined when nothing is selected crashes them.
+  if (!pluginFilters) {
     return undefined;
   }
-  const converted: Record<string, { value: unknown }> = {};
-  Object.entries(selectedFilters).forEach(([key, selected]) => {
-    const filter = pluginFilters?.[key];
+  const converted: Record<string, { type: FilterTypes; value: unknown }> = {};
+  Object.entries(pluginFilters).forEach(([key, filter]) => {
+    converted[key] = { type: filter.type, value: filter.value };
+  });
+  Object.entries(selectedFilters ?? {}).forEach(([key, selected]) => {
+    const filter = pluginFilters[key];
     // A key v1 kept but the plugin no longer declares is dropped.
     if (filter) {
-      converted[key] = convertFilterValueBack(filter, selected);
+      converted[key] = {
+        type: filter.type,
+        ...convertFilterValueBack(filter, selected),
+      };
     }
   });
   return converted;
