@@ -66,6 +66,7 @@ const pluginToSource = (plugin: InstalledPlugin): Source => ({
   url: plugin.site ?? '',
   lang: toFilterLanguage(plugin.lang),
   icon: plugin.iconUrl ?? '',
+  isPlugin: true,
 });
 
 /**

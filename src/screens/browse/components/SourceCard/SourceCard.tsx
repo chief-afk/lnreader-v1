@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { getString } from '../../../../../strings/translations';
 import { Button, IconButtonV2 } from '../../../../components';
@@ -31,7 +32,17 @@ const SourceCard: React.FC<Props> = ({
     <View style={styles.flexRow}>
       <Image source={{ uri: source.icon }} style={styles.icon} />
       <View style={styles.details}>
-        <Text style={{ color: theme.onSurface }}>{source.sourceName}</Text>
+        <View style={styles.nameRow}>
+          <Text style={{ color: theme.onSurface }}>{source.sourceName}</Text>
+          {source.isPlugin ? (
+            <MaterialCommunityIcons
+              name="puzzle"
+              size={14}
+              color={theme.onSurfaceVariant}
+              style={styles.pluginBadge}
+            />
+          ) : null}
+        </View>
         <Text style={[{ color: theme.onSurfaceVariant }, styles.description]}>
           <Text>{`${source.lang} (ID: ${source.sourceId})`}</Text>
         </Text>
@@ -72,6 +83,13 @@ const styles = StyleSheet.create({
   },
   details: {
     marginLeft: 16,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pluginBadge: {
+    marginLeft: 6,
   },
   description: {
     fontSize: 12,

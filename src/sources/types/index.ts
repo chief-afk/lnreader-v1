@@ -5,6 +5,7 @@ export interface Source {
   lang: string;
   icon: string;
   isNsfw?: boolean;
+  isPlugin?: boolean;
 }
 
 export interface SourceNovelItem {
