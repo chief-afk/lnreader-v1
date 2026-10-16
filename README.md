@@ -61,6 +61,31 @@ Use v2 for the new UI and newer features. Use this fork only if you
 want the good old v1 look and feel, with no unexpected updates
 breaking your library.
 
+## Sources in 1.3.x
+
+The bundled catalog is trimmed on purpose. Sources whose sites died were
+removed in 1.3.0 rather than shipped as known-dead entries; the growth
+path is the community-maintained v2 plugin ecosystem, which the fork
+runs natively.
+
+### Plugins
+
+Browse > the puzzle icon in the searchbar opens the plugin browser,
+listing everything in the official LNReader plugin repository. Install
+adds the source to Browse like any bundled source; the browser shows
+Update when the repo offers a newer version, and Uninstall removes the
+plugin and its data. A broken plugin fails alone: the error is visible
+on its card, and its source screen shows a retry state instead of
+taking the app down.
+
+### Repositories
+
+The official plugin repo is built in and enabled by default. You can add
+your own from the plugin browser's repository manager. Repositories must
+be https:// (plain http works only for localhost when testing), and they
+run third-party code on your device: only add repositories you trust.
+The app asks for confirmation before adding one.
+
 ## Migrating from official LNReader v1
 
 The fork installs as a separate app (`com.chief.lnreader.v1`); it cannot
@@ -108,6 +133,20 @@ The import merges into whatever the fork already has: novels, chapters
 with read flags and bookmarks, history, and categories. Downloaded
 chapters do not transfer (their stored pages stay in the old app); the
 fork will simply re-download on demand.
+
+## Importing a backup from official LNReader v2
+
+A library backup from the official v2 app can be imported in Settings >
+Backup > Import v2 backup. Create one in the official app first
+(Settings > Backup; a local backup file is enough, no Google account
+needed).
+
+The import brings over the library (novels, followed state, unread
+flags), reading history, categories, and the backup's plugin list: v2
+plugins you had installed appear in the plugin browser ready to
+install. App settings do not transfer, and downloaded chapter files do
+not transfer either (chapters re-download on demand). The import is
+one-way: the fork has no v2 backup export.
 
 ---
 
