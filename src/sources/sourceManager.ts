@@ -207,6 +207,15 @@ const pluginScraper = (sourceId: number): Scraper | undefined => {
   pluginScraperCache.set(sourceId, scraper);
   return scraper;
 };
+
+/**
+ * Drops the cached scraper for a plugin source so the next resolve
+ * picks up a freshly installed, updated, or removed dist without a
+ * restart.
+ */
+export const clearPluginScraper = (sourceId: number): void => {
+  pluginScraperCache.delete(sourceId);
+};
 export const sourceManager = (sourceId: number): Scraper | undefined => {
   const scrapers: Record<number, Scraper> = {
     // @ts-ignore

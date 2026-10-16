@@ -8,6 +8,7 @@ import {
   clearPluginError,
   deletePluginByPluginId,
   getAllPlugins,
+  getPluginByPluginId,
   InstalledPlugin,
   setPluginError,
   updatePluginRepo,
@@ -25,6 +26,7 @@ import {
   InstalledRepository,
   getEnabledRepositories,
 } from '../database/queries/RepoQueries';
+import { clearPluginScraper } from '../sources/sourceManager';
 import { Plugin, PluginImageRequestInit, PluginManifestItem } from './types';
 
 export { OFFICIAL_PLUGIN_MANIFEST_URL };
@@ -270,6 +272,9 @@ export const installPlugin = async (
       iconUrl: item.iconUrl,
       repoUrl: manifestUrl,
     });
+    // An update overwrites the dist; drop the stale cached scraper so
+    // the new code takes effect without a restart.
+    clearPluginScraper(sourceId);
     clearPluginError(pluginId);
     instanceCache.set(pluginId, plugin);
     return {
@@ -296,7 +301,11 @@ export const installPlugin = async (
  */
 export const uninstallPlugin = (pluginId: string): void => {
   const validatedId = validatePluginId(pluginId);
+  const row = getPluginByPluginId(validatedId);
   deletePluginData(validatedId);
+  if (row) {
+    clearPluginScraper(row.sourceId);
+  }
   deletePluginByPluginId(validatedId);
   instanceCache.delete(validatedId);
 };
@@ -321,7 +330,13 @@ export const getInstalledPlugin = (pluginId: string): Plugin | undefined => {
     instanceCache.set(pluginId, plugin);
     return plugin;
   } catch (err) {
-    setPluginError(pluginId, errorMessage(err));
+    // Only a downloaded dist that fails to init is a real failure; a
+    // missing dist (backup-seeded rows swept by every update/search)
+    // must stay error-less or the row gets poisoned into the failed
+    // state before it is ever installed.
+    if (getPluginDistFile(pluginId).exists) {
+      setPluginError(pluginId, errorMessage(err));
+    }
     return undefined;
   }
 };

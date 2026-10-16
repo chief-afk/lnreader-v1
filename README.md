@@ -103,6 +103,11 @@ way. Backups created by the fork itself are richer: they also carry
 chapters with read/bookmark flags, history, and categories, and restore
 fully without a network connection.
 
+One caveat if your library includes plugin sources: a backup file
+references them by numeric id only, so on a fresh device, install your
+plugins before restoring (or in the same order afterwards); a different
+order can attach restored novels to the wrong plugin.
+
 ### 2. Old app database (full state, needs root or adb)
 
 The only place your full v1 state (reading progress, history,
@@ -146,7 +151,12 @@ flags), reading history, categories, and the backup's plugin list: v2
 plugins you had installed appear in the plugin browser ready to
 install. App settings do not transfer, and downloaded chapter files do
 not transfer either (chapters re-download on demand). The import is
-one-way: the fork has no v2 backup export.
+one-way: the fork has no v2 backup export. On a fresh device, seeded
+plugins are listed but not downloaded; the import itself remaps each
+novel to the locally installed plugin, so install order does not
+matter here. Uninstalling a plugin does free its numeric id for
+reuse, though: after an uninstall/reinstall cycle, that plugin's old
+library entries can end up attached to a different plugin.
 
 ---
 

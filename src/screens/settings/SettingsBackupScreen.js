@@ -49,10 +49,14 @@ const importV2BackupWithSummary = async () => {
     showToast(
       getString('backupScreen.importV2Finished') +
         (parts.length ? ': ' + parts.join(', ') : '') +
-        (summary.novels.failed ? ` (${summary.novels.failed} failed)` : ''),
+        (summary.novels.failed
+          ? ` (${summary.novels.failed} ${getString(
+              'backupScreen.failedSuffix',
+            )})`
+          : ''),
     );
   } catch (error) {
-    showToast(error.message);
+    showToast(error instanceof Error ? error.message : String(error));
   }
 };
 
@@ -114,7 +118,7 @@ const BackupSettings = ({ navigation }) => {
             theme={theme}
           />
           <List.InfoItem
-            title="Downloaded chapter content does not transfer; the downloaded flag is kept and chapters re-fetch on open."
+            title={getString('backupScreen.importV2DownloadedNote')}
             icon="information-outline"
             theme={theme}
           />

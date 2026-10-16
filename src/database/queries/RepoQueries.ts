@@ -39,16 +39,23 @@ export const isOfficialRepository = (
 ): boolean => repo.repoUrl === OFFICIAL_PLUGIN_MANIFEST_URL;
 
 /**
- * Inserts a repository, or re-enables and renames the row with the
- * same URL. Returns the row id.
+ * Inserts a repository, or re-enables the row with the same URL (the
+ * official repository also keeps its built-in name). Returns the row
+ * id.
  */
 export const addRepository = (repoUrl: string, name?: string): number => {
   const existing = getRepositoryByUrl(repoUrl);
   if (existing) {
-    db.runSync(
-      'UPDATE installedRepositories SET name = ?, enabled = 1 WHERE id = ?',
-      [name ?? existing.name ?? null, existing.id],
-    );
+    if (isOfficialRepository(existing)) {
+      db.runSync('UPDATE installedRepositories SET enabled = 1 WHERE id = ?', [
+        existing.id,
+      ]);
+    } else {
+      db.runSync(
+        'UPDATE installedRepositories SET name = ?, enabled = 1 WHERE id = ?',
+        [name ?? existing.name ?? null, existing.id],
+      );
+    }
     return existing.id;
   }
   const result = db.runSync(

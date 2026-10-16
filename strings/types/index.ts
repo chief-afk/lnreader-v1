@@ -224,6 +224,8 @@ export interface StringMap {
   'backupScreen.importV2': 'string';
   'backupScreen.importV2Desc': 'string';
   'backupScreen.importV2Finished': 'string';
+  'backupScreen.importV2DownloadedNote': 'string';
+  'backupScreen.failedSuffix': 'string';
   'backupScreen.novels': 'string';
   'backupScreen.chapters': 'string';
   'backupScreen.historyEntries': 'string';

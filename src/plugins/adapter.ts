@@ -72,8 +72,12 @@ const toV1Values = (filter: PluginFilter): V1FilterValue[] => {
         label: option.label,
         value: option.value,
       }));
+    case FilterTypes.Switch:
+      // The checkbox sheet round-trips a selected 'on' entry;
+      // unchecked is absent, which reads back as false.
+      return [{ label: filter.label, value: 'on' }];
     default:
-      // TextInput has no option list; Switch renders as a single Checkbox.
+      // TextInput has no option list.
       return [];
   }
 };
