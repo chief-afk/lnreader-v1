@@ -71,6 +71,8 @@
     "searchbar": "Search sources",
     "globalSearch": "Global search",
     "listEmpty": "Enable languages from settings",
+    "pluginListEmpty": "No sources installed. Install plugins to browse novels.",
+    "browsePlugins": "Browse plugins",
     "lastUsed": "Last used",
     "pinned": "Pinned",
     "all": "All",
@@ -227,7 +229,10 @@
         "onlyShowPinnedSources": "Only show pinned sources",
         "languages": "Languages",
         "searchAllSources": "Search all sources",
-        "searchAllWarning": "Searching a large number of sources may freeze the app till searching is finished."
+        "searchAllWarning": "Searching a large number of sources may freeze the app till searching is finished.",
+        "sources": "Sources",
+        "showLegacySources": "Show legacy sources",
+        "showLegacySourcesDescription": "Show all bundled sources. Plugins are always shown."
       }
     }
   },

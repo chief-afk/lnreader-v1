@@ -1,7 +1,7 @@
-import { SectionList, StyleSheet, Text } from 'react-native';
+import { SectionList, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
 
-import { EmptyView, SearchbarV2 } from '../../components';
+import { Button, EmptyView, SearchbarV2 } from '../../components';
 import {
   defaultLanguage,
   getSourcesAction,
@@ -45,6 +45,7 @@ const BrowseScreen = () => {
     pinnedSourceIds = [],
     languageFilters = [defaultLanguage || 'English'], //defaultLang cant be null, but just for sure
     lastUsed,
+    showLegacySources = false,
   } = useSourcesReducer();
 
   const {
@@ -55,7 +56,7 @@ const BrowseScreen = () => {
 
   useEffect(() => {
     dispatch(getSourcesAction());
-  }, [dispatch, languageFilters]);
+  }, [dispatch, languageFilters, showLegacySources]);
 
   const isPinned = (sourceId: number) => pinnedSourceIds.indexOf(sourceId) > -1;
 
@@ -157,7 +158,22 @@ const BrowseScreen = () => {
           description={getString('browseScreen.listEmpty')}
           theme={theme}
         />
-      ) : allSources.length === 0 ? null : (
+      ) : allSources.length === 0 ? (
+        showLegacySources ? null : (
+          <View style={styles.pluginEmptyContainer}>
+            <EmptyView
+              icon="(･Д･。"
+              description={getString('browseScreen.pluginListEmpty')}
+              theme={theme}
+            />
+            <Button
+              title={getString('browseScreen.browsePlugins')}
+              onPress={() => navigate('PluginBrowser' as never)}
+              style={styles.pluginEmptyButton}
+            />
+          </View>
+        )
+      ) : (
         <>
           <SectionList
             sections={sections}
@@ -229,5 +245,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingVertical: 8,
     paddingHorizontal: 16,
+  },
+  pluginEmptyContainer: {
+    flex: 1,
+  },
+  pluginEmptyButton: {
+    marginBottom: 16,
+    marginHorizontal: 24,
   },
 });

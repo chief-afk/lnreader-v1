@@ -14,6 +14,7 @@ import MigrationNovelList from './MigrationNovelList';
 
 import { ScreenContainer } from '../../../components/Common';
 import { sourceManager } from '../../../sources/sourceManager';
+import { allShippedSources } from '../../../redux/source/sourcesSlice';
 import { useBrowseSettings, useSourcesReducer } from '../../../redux/hooks';
 import { useLibraryNovels } from '@screens/library/hooks/useLibrary';
 import { Appbar } from '@components';
@@ -30,7 +31,9 @@ const MigrationNovels = ({ navigation, route }) => {
 
   const { library } = useLibraryNovels();
 
-  const { allSources, pinnedSourceIds = [] } = useSourcesReducer();
+  const allSources = allShippedSources();
+
+  const { pinnedSourceIds = [] } = useSourcesReducer();
 
   const isPinned = id => pinnedSourceIds.indexOf(id) > -1;
   const pinnedSources = allSources.filter(source => isPinned(source.sourceId));
@@ -65,13 +68,16 @@ const MigrationNovels = ({ navigation, route }) => {
             ),
           );
         } catch (e) {
+          // Resolved before the updater: React may run it during render,
+          // and sources reject with non-Error values.
+          const errorMessage = e instanceof Error ? e.message : String(e);
           setSearchResults(prevState =>
             prevState.map(sourceItem =>
               sourceItem.sourceId === item.sourceId
                 ? {
                     ...sourceItem,
                     loading: false,
-                    error: e.message,
+                    error: errorMessage,
                   }
                 : sourceItem,
             ),

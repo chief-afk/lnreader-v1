@@ -85,7 +85,22 @@ const installedPluginSources = (): Source[] => {
   }
 };
 
-const allCatalogSources = (): Source[] => [
+/**
+ * Bundled sources are opt-in: the default catalog is the plugin
+ * ecosystem. Catalog visibility only - novels from hidden sources
+ * keep resolving through sourceManager.
+ */
+const allCatalogSources = (showLegacySources: boolean): Source[] => [
+  ...(showLegacySources ? AllSources : []),
+  ...installedPluginSources(),
+];
+
+/**
+ * Bundled sources plus installed plugins regardless of the legacy
+ * toggle, for surfaces that must see every shipped source (novel
+ * migration).
+ */
+export const allShippedSources = (): Source[] => [
   ...AllSources,
   ...installedPluginSources(),
 ];
@@ -96,14 +111,16 @@ interface SourcesState {
   pinnedSourceIds: number[];
   lastUsed: number | null;
   languageFilters: string[];
+  showLegacySources: boolean;
 }
 
 const initialState: SourcesState = {
-  allSources: allCatalogSources(),
+  allSources: allCatalogSources(false),
   searchResults: [],
   pinnedSourceIds: [],
   lastUsed: null,
   languageFilters: [defaultLanguage],
+  showLegacySources: false,
 };
 
 export const sourcesSlice = createSlice({
@@ -111,7 +128,7 @@ export const sourcesSlice = createSlice({
   initialState,
   reducers: {
     getSourcesAction: state => {
-      const sources = allCatalogSources()
+      const sources = allCatalogSources(state.showLegacySources)
         .filter(source => state.languageFilters.indexOf(source.lang) !== -1)
         .sort((a, b) => a.sourceName.localeCompare(b.sourceName));
 
@@ -142,6 +159,9 @@ export const sourcesSlice = createSlice({
         state.pinnedSourceIds = [...state.pinnedSourceIds, action.payload];
       }
     },
+    toggleShowLegacySources: state => {
+      state.showLegacySources = !state.showLegacySources;
+    },
     toggleLanguageFilter: (
       state,
       action: PayloadAction<{ language: string }>,
@@ -164,6 +184,7 @@ export const {
   getSourcesAction,
   togglePinSource,
   toggleLanguageFilter,
+  toggleShowLegacySources,
   setLastUsedSource,
   searchSourcesAction,
 } = sourcesSlice.actions;

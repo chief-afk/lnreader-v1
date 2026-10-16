@@ -4,7 +4,7 @@ import { StyleSheet, View, FlatList, Text } from 'react-native';
 import MigrationSourceItem from './MigrationSourceItem';
 
 import { useTheme } from '@hooks/useTheme';
-import { useSourcesReducer } from '../../../redux/hooks';
+import { allShippedSources } from '../../../redux/source/sourcesSlice';
 import { useLibraryNovels } from '@screens/library/hooks/useLibrary';
 import { Appbar } from '@components';
 
@@ -12,12 +12,11 @@ const GlobalSearch = ({ navigation }) => {
   const theme = useTheme();
 
   const { library } = useLibraryNovels();
-  let { allSources } = useSourcesReducer();
 
   const novelsPerSource = sourceId =>
     library.filter(novel => novel.sourceId === sourceId).length;
 
-  sources = allSources.filter(
+  sources = allShippedSources().filter(
     source =>
       library.filter(novel => novel.sourceId === source.sourceId).length,
   );

@@ -58,6 +58,8 @@ export interface StringMap {
   'browseScreen.searchbar': 'string';
   'browseScreen.globalSearch': 'string';
   'browseScreen.listEmpty': 'string';
+  'browseScreen.pluginListEmpty': 'string';
+  'browseScreen.browsePlugins': 'string';
   'browseScreen.lastUsed': 'string';
   'browseScreen.pinned': 'string';
   'browseScreen.all': 'string';
@@ -187,6 +189,9 @@ export interface StringMap {
   'moreScreen.settingsScreen.browseSettingsScreen.languages': 'string';
   'moreScreen.settingsScreen.browseSettingsScreen.searchAllSources': 'string';
   'moreScreen.settingsScreen.browseSettingsScreen.searchAllWarning': 'string';
+  'moreScreen.settingsScreen.browseSettingsScreen.sources': 'string';
+  'moreScreen.settingsScreen.browseSettingsScreen.showLegacySources': 'string';
+  'moreScreen.settingsScreen.browseSettingsScreen.showLegacySourcesDescription': 'string';
   'sourceScreen.noResultsFound': 'string';
   'statsScreen.title': 'string';
   'statsScreen.titlesInLibrary': 'string';

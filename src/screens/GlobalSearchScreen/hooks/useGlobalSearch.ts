@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { useBrowseSettings, useSourcesReducer } from '@redux/hooks';
+import { getSourcesAction } from '../../../redux/source/sourcesSlice';
 import { Source, SourceNovelItem } from '../../../sources/types';
 import { sourceManager } from '../../../sources/sourceManager';
 
@@ -17,6 +19,7 @@ export interface GlobalSearchResult {
 
 export const useGlobalSearch = ({ defaultSearchText }: Props) => {
   const isMounted = useRef(true);
+  const dispatch = useDispatch();
   const { searchAllSources = false } = useBrowseSettings();
 
   const { allSources, pinnedSourceIds = [] } = useSourcesReducer();
@@ -78,6 +81,10 @@ export const useGlobalSearch = ({ defaultSearchText }: Props) => {
             ),
           );
         } catch (error) {
+          // Resolved before the updater: React may run it during render,
+          // and sources reject with non-Error values.
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           setSearchResults(prevState =>
             prevState.map(prevResult =>
               prevResult.source.sourceId === source.sourceId
@@ -85,7 +92,7 @@ export const useGlobalSearch = ({ defaultSearchText }: Props) => {
                     ...prevResult,
                     novels: [],
                     isLoading: false,
-                    error: error.message,
+                    error: errorMessage,
                   }
                 : { ...prevResult },
             ),
@@ -98,6 +105,10 @@ export const useGlobalSearch = ({ defaultSearchText }: Props) => {
   };
 
   useEffect(() => {
+    // The persisted catalog can be stale after an app update; refresh
+    // it so search respects the current showLegacySources state even
+    // when Global Search is opened without visiting Browse first.
+    dispatch(getSourcesAction());
     if (defaultSearchText) {
       globalSearch(defaultSearchText);
     }

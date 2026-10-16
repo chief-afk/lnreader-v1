@@ -11,7 +11,10 @@ import { useTheme } from '@hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { getString } from '../../../strings/translations';
 import { languages } from '../../utils/constants/languages';
-import { toggleLanguageFilter } from '../../redux/source/sourcesSlice';
+import {
+  toggleLanguageFilter,
+  toggleShowLegacySources,
+} from '../../redux/source/sourcesSlice';
 import { setBrowseSettings } from '../../redux/settings/settingsSlice';
 
 const BrowseSettings = () => {
@@ -19,7 +22,7 @@ const BrowseSettings = () => {
   const { goBack } = useNavigation();
   const dispatch = useAppDispatch();
 
-  const { languageFilters } = useSourcesReducer();
+  const { languageFilters, showLegacySources = false } = useSourcesReducer();
   const {
     searchAllSources = false,
     showMyAnimeList = true,
@@ -106,6 +109,23 @@ const BrowseSettings = () => {
                   }),
                 )
               }
+              theme={theme}
+            />
+            <List.Divider theme={theme} />
+            <List.SubHeader theme={theme}>
+              {getString(
+                'moreScreen.settingsScreen.browseSettingsScreen.sources',
+              )}
+            </List.SubHeader>
+            <SwitchItem
+              label={getString(
+                'moreScreen.settingsScreen.browseSettingsScreen.showLegacySources',
+              )}
+              description={getString(
+                'moreScreen.settingsScreen.browseSettingsScreen.showLegacySourcesDescription',
+              )}
+              value={showLegacySources}
+              onPress={() => dispatch(toggleShowLegacySources())}
               theme={theme}
             />
             <List.Divider theme={theme} />
