@@ -23,7 +23,7 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, actions }) => {
       {actions?.length ? (
         <View style={styles.actionsCtn}>
           {actions.map(action => (
-            <View style={styles.buttonWrapper}>
+            <View key={action.title} style={styles.buttonWrapper}>
               <Pressable
                 android_ripple={{ color: theme.rippleColor }}
                 onPress={action.onPress}
