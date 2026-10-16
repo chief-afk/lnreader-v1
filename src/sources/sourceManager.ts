@@ -1,11 +1,8 @@
 import EPubSource from './local/epubSource';
-import ComradeMaoScraper from './en/comrademao';
-import ReadLightNovelScraper from './en/readlightnovel';
 import NovelBinScraper from './en/novelbin';
 import readNovelFullScraper from './en/readnovelfull';
 import mtlNovelScraper from './en/mtlnovel';
 import novelhallScraper from './en/novelhall';
-import WuxiaWorldScraper from './en/wuxiaworld';
 import novelFullScraper from './en/novelfull';
 import vipNovelScraper from './en/vipnovel';
 import FreeWebNovelScraper from './en/freewebnovel';
@@ -118,7 +115,6 @@ import ChireadsScraper from './fr/chireads';
 import NitroScansScraper from './en/nitroscans';
 import NovelForestScraper from './en/novelforest';
 import NovelPubScraper from './en/novelpub';
-import BestLightNovel from './en/bestlightnovel';
 import NovelFullMeScraper from './en/NovelFullMe';
 import {
   LtnovelScraper,
@@ -138,10 +134,7 @@ import HakoLightNovelScraper from './vi/HakoLightNovel';
 import NovelFullScraper from './en/novelfulldotnet';
 import NovelTop1Scraper from './en/noveltop1';
 import { SelectedFilter, SourceFilter } from './types/filterTypes';
-import {
-  KolNovelScraper,
-  PandaMtlScraper,
-} from './multisrc/wqmangastream/WQMangaStreamGenerator';
+import { KolNovelScraper } from './multisrc/wqmangastream/WQMangaStreamGenerator';
 import AgitoonScraper from './kr/Agitoon';
 import PawReadScraper from './en/pawread';
 import {
@@ -170,7 +163,6 @@ import {
 } from './multisrc/noveltl/NovelTlGenerator';
 import NovelsOnlineScraper from './en/NovelOnline';
 import SmakolykyTlScraper from './ua/smakolykytl';
-import LitSpaceScraper from './ru/freedlit';
 
 interface PopularNovelsResponse {
   novels: SourceNovelItem[];
@@ -220,12 +212,10 @@ export const sourceManager = (sourceId: number): Scraper | undefined => {
     // @ts-ignore
     0: EPubSource, // @ts-ignore
     1: BoxNovelScraper, // @ts-ignore
-    2: ReadLightNovelScraper, // @ts-ignore
     3: NovelBinScraper, // @ts-ignore
     4: readNovelFullScraper, // @ts-ignore
     5: mtlNovelScraper, // @ts-ignore
     6: novelhallScraper, // @ts-ignore
-    7: WuxiaWorldScraper, // @ts-ignore
     8: novelFullScraper, // @ts-ignore
     10: vipNovelScraper, // @ts-ignore
     13: FreeWebNovelScraper, // @ts-ignore
@@ -240,7 +230,6 @@ export const sourceManager = (sourceId: number): Scraper | undefined => {
     24: SkyNovelsScraper, // @ts-ignore
     25: EinharjarProjectScraper, // @ts-ignore
     26: NovelasLigeraScraper, // @ts-ignore
-    27: ComradeMaoScraper, // @ts-ignore
     28: YuukiTlsScraper, // @ts-ignore
     29: HasuTlScraper, // @ts-ignore
     30: OasisTranslationsScraper, // @ts-ignore
@@ -299,7 +288,6 @@ export const sourceManager = (sourceId: number): Scraper | undefined => {
     92: NovelForestScraper, // @ts-ignore
     93: RanobeLibScraper, // @ts-ignore
     94: NovelPubScraper, // @ts-ignore
-    95: BestLightNovel, // @ts-ignore
     96: HizoMangaScraper, // @ts-ignore
     97: NovelFullMeScraper, // @ts-ignore
     98: LightNovelFullScraper, // @ts-ignore
@@ -343,7 +331,6 @@ export const sourceManager = (sourceId: number): Scraper | undefined => {
     143: WebNovelOkuScraper, // @ts-ignore
     144: NobleMtlScraper, // @ts-ignore
     145: AgitoonScraper, // @ts-ignore
-    146: PandaMtlScraper, // @ts-ignore
     147: PawReadScraper, // @ts-ignore
     148: ErolateScraper, // @ts-ignore
     149: RuRanobeScraper, // @ts-ignore
@@ -365,7 +352,6 @@ export const sourceManager = (sourceId: number): Scraper | undefined => {
     165: LinovelibScraper, // @ts-ignore
     166: NOVAScraper, // @ts-ignore
     167: SmakolykyTlScraper, // @ts-ignore
-    168: LitSpaceScraper, // @ts-ignore
     169: AsuraLightNovelScraper, // @ts-ignore
     170: ICantReadJPTLScraper, // @ts-ignore
     171: IfreedomScraper, // @ts-ignore

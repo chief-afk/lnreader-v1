@@ -7,13 +7,6 @@
     "lang": "English"
   },
   {
-    "sourceId": 2,
-    "sourceName": "ReadLightNovel",
-    "url": "https://www.readlightnovel.org",
-    "lang": "English",
-    "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/readlightnovel/icon.png?raw=true"
-  },
-  {
     "sourceId": 3,
     "url": "https://novelbin.org/",
     "sourceName": "NovelBin",
@@ -39,13 +32,6 @@
     "url": "https://www.novelhall.com/",
     "sourceName": "NovelHall",
     "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/novelhall/icon.png?raw=true",
-    "lang": "English"
-  },
-  {
-    "sourceId": 7,
-    "url": "https://www.wuxiaworld.com/",
-    "sourceName": "WuxiaWorld",
-    "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/wuxiaworld/icon.png?raw=true",
     "lang": "English"
   },
   {
@@ -138,13 +124,6 @@
     "sourceName": "NovelasLigera",
     "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/es/novelasligera/icon.png?raw=true",
     "lang": "Spanish"
-  },
-  {
-    "sourceId": 27,
-    "url": "https://comrademao.com/",
-    "sourceName": "ComradeMao",
-    "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/comrademao/icon.png?raw=true",
-    "lang": "English"
   },
   {
     "sourceId": 28,
@@ -497,13 +476,6 @@
     "lang": "English"
   },
   {
-    "sourceId": 95,
-    "url": "https://www.bestlightnovel.com/",
-    "sourceName": "BestLightNovel",
-    "icon": "https://github.com/LNReader/lnreader-sources/blob/main/icons/src/en/bestlightnovel/icon.png?raw=true",
-    "lang": "English"
-  },
-  {
     "sourceId": 96,
     "url": "https://hizomanga.net/",
     "sourceName": "HizoManga",
@@ -763,13 +735,6 @@
     "lang": "Korean"
   },
   {
-    "sourceId": 146,
-    "sourceName": "Panda Machine translations",
-    "icon": "https://pandamtl.com/wp-includes/images/w-logo-blue-white-bg.png",
-    "url": "https://pandamtl.com/",
-    "lang": "English"
-  },
-  {
     "sourceId": 147,
     "sourceName": "PawRead",
     "icon": "https://www.pawread.com/favicon.ico",
@@ -915,13 +880,6 @@
     "url": "https://smakolykytl.site/",
     "lang": "Ukraine",
     "icon": "https://smakolykytl.site/img/favicon/apple-touch-icon.webp"
-  },
-  {
-    "sourceId": 168,
-    "sourceName": "LitSpace",
-    "url": "https://freedlit.space/",
-    "lang": "Russian",
-    "icon": "https://freedlit.space/images/fav/apple-touch-icon.png"
   },
   {
     "sourceId": 169,
