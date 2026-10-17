@@ -231,7 +231,7 @@
         "searchAllSources": "Search all sources",
         "searchAllWarning": "Searching a large number of sources may freeze the app till searching is finished.",
         "sources": "Sources",
-        "showLegacySources": "Show legacy sources",
+        "showLegacySources": "Show legacy v1 sources",
         "showLegacySourcesDescription": "Show all bundled sources. Plugins are always shown."
       }
     }
