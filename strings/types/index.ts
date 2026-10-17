@@ -108,6 +108,7 @@ export interface StringMap {
   'readerScreen.bottomSheet.useChapterDrawerSwipeNavigation': 'string';
   'readerScreen.bottomSheet.removeExtraSpacing': 'string';
   'readerScreen.bottomSheet.volumeButtonsScroll': 'string';
+  'readerScreen.bottomSheet.keepToolbarsVisible': 'string';
   'readerScreen.bottomSheet.scrollAmount': 'string';
   'readerScreen.bottomSheet.showSwipeMargins': 'string';
   'readerScreen.drawer.scrollToCurrentChapter': 'string';
@@ -171,6 +172,7 @@ export interface StringMap {
   'moreScreen.settingsScreen.readerSettings.backgroundColorModal': 'string';
   'moreScreen.settingsScreen.readerSettings.textColorModal': 'string';
   'moreScreen.settingsScreen.readerSettings.verticalSeekbarDesc': 'string';
+  'moreScreen.settingsScreen.readerSettings.keepToolbarsVisibleDesc': 'string';
   'moreScreen.settingsScreen.readerSettings.autoScrollInterval': 'string';
   'moreScreen.settingsScreen.readerSettings.autoScrollOffset': 'string';
   'moreScreen.settingsScreen.readerSettings.saveCustomTheme': 'string';

@@ -79,6 +79,7 @@ export const initialState = {
   removeExtraParagraphSpacing: false,
   addChapterNameInReader: false,
   bionicReading: false,
+  keepToolbarsVisible: false,
 
   reader: {
     theme: '#292832',

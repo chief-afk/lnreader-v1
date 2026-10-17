@@ -128,6 +128,7 @@
       "useChapterDrawerSwipeNavigation": "Swipe right to open drawer",
       "removeExtraSpacing": "Remove extra paragraph spacing",
       "volumeButtonsScroll": "Volume buttons scroll",
+      "keepToolbarsVisible": "Keep toolbars visible",
       "scrollAmount": "Scroll amount (screen height by default)",
       "showSwipeMargins": "Show swipe margins"
     },
@@ -210,6 +211,7 @@
         "backgroundColorModal": "Reader background color",
         "textColorModal": "Reader text color",
         "verticalSeekbarDesc": "Switch between vertical and horizontal seekbar",
+        "keepToolbarsVisibleDesc": "Don't hide the toolbars when opening chapters",
         "autoScrollInterval": "Auto scroll interval (in seconds)",
         "autoScrollOffset": "Auto scroll offset (screen height by default)",
         "saveCustomTheme": "Save custom theme",

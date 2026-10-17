@@ -29,6 +29,7 @@ const GeneralSettings: React.FC = () => {
     autoScrollInterval = 10,
     autoScrollOffset = null,
     bionicReading,
+    keepToolbarsVisible = false,
   } = useSettingsV1();
 
   const areAutoScrollSettingsDefault =
@@ -58,6 +59,17 @@ const GeneralSettings: React.FC = () => {
         value={verticalSeekbar}
         onPress={() =>
           dispatch(setAppSettings('verticalSeekbar', !verticalSeekbar))
+        }
+        theme={theme}
+      />
+      <SwitchItem
+        label={getString('readerScreen.bottomSheet.keepToolbarsVisible')}
+        description={getString(
+          'moreScreen.settingsScreen.readerSettings.keepToolbarsVisibleDesc',
+        )}
+        value={keepToolbarsVisible}
+        onPress={() =>
+          dispatch(setAppSettings('keepToolbarsVisible', !keepToolbarsVisible))
         }
         theme={theme}
       />

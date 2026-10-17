@@ -147,12 +147,13 @@ const ChapterContent = ({ route, navigation, onOpenDrawer }) => {
     verticalSeekbar = true,
     removeExtraParagraphSpacing = false,
     bionicReading = false,
+    keepToolbarsVisible = false,
   } = useSettings();
   const { incognitoMode } = useLibrarySettings();
 
   const { setImmersiveMode, showStatusAndNavBar } = useFullscreenMode();
 
-  const [hidden, setHidden] = useState(true);
+  const [hidden, setHidden] = useState(!keepToolbarsVisible);
 
   const position = usePosition(novelId, chapterId);
   const minScroll = useRef(0);
