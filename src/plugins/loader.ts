@@ -48,10 +48,7 @@ export const fetchManifest = async (
 ): Promise<PluginManifestItem[]> => {
   const res = await fetchApiV1({ url: manifestUrl });
   const manifest = await res.json();
-  if (!Array.isArray(manifest)) {
-    throw new Error('Plugin manifest has an unexpected format');
-  }
-  return manifest;
+  return validatePluginManifest(manifest);
 };
 
 /**
@@ -68,9 +65,27 @@ const REQUIRED_MANIFEST_FIELDS = [
   'iconUrl',
 ] as const;
 
+const validateManifestItem = (item: unknown, index: number): void => {
+  if (typeof item !== 'object' || item === null) {
+    throw new Error(`Plugin manifest item ${index} is malformed`);
+  }
+  const record = item as Record<string, unknown>;
+  for (const field of REQUIRED_MANIFEST_FIELDS) {
+    if (
+      typeof record[field] !== 'string' ||
+      !(record[field] as string).trim()
+    ) {
+      throw new Error(`Plugin manifest item "${index}" is missing "${field}"`);
+    }
+  }
+};
+
 /**
  * Add-time gate: the payload must parse as the plugins.min.json
- * schema, i.e. an array of items carrying every required field.
+ * schema, i.e. an array of plugin items. Entries are validated
+ * individually like upstream: a malformed entry is skipped so it
+ * cannot take down the rest of the repository's listing. A repo with
+ * only malformed entries stays a hard error.
  */
 export const validatePluginManifest = (
   manifest: unknown,
@@ -78,19 +93,20 @@ export const validatePluginManifest = (
   if (!Array.isArray(manifest)) {
     throw new Error('Plugin manifest has an unexpected format');
   }
+  const items: PluginManifestItem[] = [];
+  let firstError: unknown;
   manifest.forEach((item, index) => {
-    if (typeof item !== 'object' || item === null) {
-      throw new Error(`Plugin manifest item ${index} is malformed`);
-    }
-    for (const field of REQUIRED_MANIFEST_FIELDS) {
-      if (typeof item[field] !== 'string' || !(item[field] as string).trim()) {
-        throw new Error(
-          `Plugin manifest item "${index}" is missing "${field}"`,
-        );
-      }
+    try {
+      validateManifestItem(item, index);
+      items.push(item as PluginManifestItem);
+    } catch (err) {
+      firstError = firstError ?? err;
     }
   });
-  return manifest as PluginManifestItem[];
+  if (manifest.length > 0 && items.length === 0) {
+    throw firstError;
+  }
+  return items;
 };
 
 const LOOPBACK_REPO_HOSTS = ['localhost', '127.0.0.1', '::1', '10.0.2.2'];

@@ -113,6 +113,10 @@ export interface PluginSourceNovel extends PluginNovelItem {
   totalPages?: number;
 }
 
+export interface PluginSourcePage {
+  chapters: PluginChapterItem[];
+}
+
 export interface PluginImageRequestInit {
   method?: string;
   headers: Record<string, string>;
@@ -150,6 +154,7 @@ export interface Plugin {
     options?: PluginPopularNovelsOptions,
   ) => Promise<PluginNovelItem[]>;
   parseNovel: (novelPath: string) => Promise<PluginSourceNovel>;
+  parsePage?: (novelPath: string, page: string) => Promise<PluginSourcePage>;
   parseChapter: (chapterPath: string) => Promise<string>;
   searchNovels: (
     searchTerm: string,

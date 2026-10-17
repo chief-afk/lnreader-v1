@@ -8,9 +8,11 @@ import { isUrlAbsolute } from '../utils/isAbsoluteUrl';
 import {
   FilterTypes,
   Plugin,
+  PluginChapterItem,
   PluginFilter,
   PluginFilters,
   PluginNovelItem,
+  PluginSourceNovel,
 } from './types';
 
 type Scraper = import('../sources/sourceManager').Scraper;
@@ -32,17 +34,22 @@ const STATUS_BY_NUMBER: Status[] = [
   Status.OnHiatus,
 ];
 
-const mapStatus = (pluginStatus?: string | number): Status | undefined => {
+const mapStatus = (
+  pluginStatus?: string | number,
+): Status | string | undefined => {
   if (pluginStatus === undefined || pluginStatus === null) {
     return undefined;
   }
   if (typeof pluginStatus === 'number') {
     return STATUS_BY_NUMBER[pluginStatus] ?? Status.Unknown;
   }
+  // Upstream stores the raw string, so statuses outside v1's enum
+  // ("Hiatus", "STUB", ...) keep their real value instead of reading
+  // as Unknown.
   const match = Object.values(Status).find(
     value => value.toLowerCase() === String(pluginStatus).toLowerCase(),
   );
-  return match ?? Status.Unknown;
+  return match ?? String(pluginStatus);
 };
 
 const joinToSite = (plugin: Plugin, path: string): string =>
@@ -161,6 +168,38 @@ export const convertSelectedFiltersToPlugin = (
 
 // --- adapter ---
 
+/**
+ * Upstream serves paginated chapter lists one page at a time: pages run
+ * 1..totalPages and each page is fetched via parsePage only when
+ * parseNovel did not already deliver its chapters (page 1 normally comes
+ * with parseNovel). v1's single-shot parseNovelAndChapters concatenates
+ * the remaining pages in page order instead; a failed page is skipped so
+ * one dead page cannot blank the whole list.
+ */
+const MAX_CHAPTER_PAGES = 50;
+
+const collectChapters = async (
+  plugin: Plugin,
+  novelUrl: string,
+  novel: PluginSourceNovel,
+): Promise<PluginChapterItem[]> => {
+  const chapters = [...(novel.chapters ?? [])];
+  const totalPages = novel.totalPages ?? 0;
+  if (totalPages <= 1 || typeof plugin.parsePage !== 'function') {
+    return chapters;
+  }
+  const lastPage = Math.min(totalPages, MAX_CHAPTER_PAGES);
+  for (let page = chapters.length ? 2 : 1; page <= lastPage; page++) {
+    try {
+      const sourcePage = await plugin.parsePage(novelUrl, String(page));
+      chapters.push(...(sourcePage?.chapters ?? []));
+    } catch {
+      // keep the pages fetched so far
+    }
+  }
+  return chapters;
+};
+
 export const adaptPluginToScraper = (
   plugin: Plugin,
   sourceId: number,
@@ -180,6 +219,7 @@ export const adaptPluginToScraper = (
   },
   parseNovelAndChapters: async novelUrl => {
     const novel = await plugin.parseNovel(novelUrl);
+    const chapters = await collectChapters(plugin, novelUrl, novel);
     return {
       sourceId,
       sourceName: plugin.name,
@@ -191,7 +231,7 @@ export const adaptPluginToScraper = (
       summary: novel.summary,
       author: novel.author,
       status: mapStatus(novel.status),
-      chapters: (novel.chapters ?? []).map(chapter => ({
+      chapters: chapters.map(chapter => ({
         chapterName: chapter.name,
         chapterUrl: chapter.path,
         releaseDate: chapter.releaseTime ?? null,

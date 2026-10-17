@@ -258,6 +258,13 @@ export const createRequireShim =
       '@libs/filterInputs': { FilterTypes },
       '@libs/defaultCover': { defaultCover },
       '@libs/utils': { utf8ToBytes, bytesToUtf8 },
+      // Repo-internal alias (@ = the plugins repo's src/) some dist
+      // builds leak into their require calls; its constants.ts exports
+      // exactly these two members.
+      '@/types/constants': {
+        NovelStatus: PluginNovelStatus,
+        defaultCover,
+      },
     };
     const lib = packages[packageName];
     if (!lib) {

@@ -37,6 +37,16 @@ const makeInit = (init?: FetchShimInit): RequestInit => {
     if (!merged.headers.get('User-Agent')) {
       merged.headers.set('User-Agent', DEFAULT_HEADERS['User-Agent']);
     }
+    // v1's fetchApi object-spreads the headers init, which reduces a
+    // Headers instance to garbage; flatten it to real pairs first.
+    // forEach yields lowercased names, and whatwg-fetch comma-joins a
+    // duplicate UA, so the canonical key is restored for User-Agent.
+    const headers: Record<string, string> = {};
+    merged.headers.forEach((value, name) => {
+      headers[name.toLowerCase() === 'user-agent' ? 'User-Agent' : name] =
+        value;
+    });
+    merged.headers = headers;
   } else {
     merged.headers = {
       ...DEFAULT_HEADERS,
