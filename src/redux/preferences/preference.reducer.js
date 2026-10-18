@@ -1,5 +1,6 @@
 import { SET_NOVEL_SETTINGS } from '../novel/novel.types';
 import {
+  REMOVE_CHAPTER_POSITIONS,
   SAVE_SCROLL_POSITION,
   SET_CHAPTER_LIST_PREF,
   SET_LAST_READ,
@@ -64,6 +65,30 @@ const novelReducer = (state = initialState, action) => {
           },
         },
       };
+    case REMOVE_CHAPTER_POSITIONS: {
+      const settings = state.novelSettings[payload.novelId];
+
+      if (!settings?.position) {
+        return state;
+      }
+
+      const position = { ...settings.position };
+
+      (payload.chapterIds || Object.keys(position)).forEach(id => {
+        delete position[id];
+      });
+
+      return {
+        ...state,
+        novelSettings: {
+          ...state.novelSettings,
+          [payload.novelId]: {
+            ...settings,
+            position,
+          },
+        },
+      };
+    }
     default:
       return state;
   }

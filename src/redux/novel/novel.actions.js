@@ -18,6 +18,7 @@ import {
   ALL_CHAPTER_DELETED,
 } from './novel.types';
 
+import { removeChapterPositions } from '../preferences/preference.actions';
 import { fetchNovel } from '../../services/Source/source';
 import {
   followNovel,
@@ -237,6 +238,13 @@ export const markPreviousChaptersUnreadAction =
 export const markChapterUnreadAction =
   (chapters, novelId, sort, filter) => async dispatch => {
     chapters.map(chapter => markChapterUnread(chapter.chapterId));
+
+    dispatch(
+      removeChapterPositions(
+        novelId,
+        chapters.map(chapter => chapter.chapterId),
+      ),
+    );
 
     const chaps = await getChapters(novelId, sort, filter);
 

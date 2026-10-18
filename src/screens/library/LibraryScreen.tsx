@@ -26,6 +26,8 @@ import {
   markAllChaptersRead,
   markAllChaptersUnread,
 } from '../../database/queries/ChapterQueries';
+import { useDispatch } from 'react-redux';
+import { removeChapterPositions } from '../../redux/preferences/preference.actions';
 import { followNovel } from '../../database/queries/NovelQueries';
 import SetCategoryModal from '@screens/novel/components/SetCategoriesModal';
 import useBoolean from '@hooks/useBoolean';
@@ -47,6 +49,7 @@ const LibraryScreen = () => {
   const theme = useTheme();
   const { searchText, setSearchText, clearSearchbar } = useSearch();
   const { navigate } = useNavigation();
+  const dispatch = useDispatch();
   const {
     showNumberOfNovels = false,
     downloadedOnlyMode = false,
@@ -295,7 +298,10 @@ const LibraryScreen = () => {
             {
               icon: 'check-outline',
               onPress: () => {
-                selectedNovelIds.map(id => markAllChaptersUnread(id));
+                selectedNovelIds.map(id => {
+                  markAllChaptersUnread(id);
+                  dispatch(removeChapterPositions(id));
+                });
                 setSelectedNovelIds([]);
                 refetchLibrary();
               },

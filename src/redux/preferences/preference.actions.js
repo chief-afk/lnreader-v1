@@ -1,4 +1,7 @@
-import { SAVE_SCROLL_POSITION } from '../preferences/preference.types';
+import {
+  REMOVE_CHAPTER_POSITIONS,
+  SAVE_SCROLL_POSITION,
+} from '../preferences/preference.types';
 
 export const saveScrollPosition =
   (position, percentage, chapterId, novelId) => async dispatch => {
@@ -12,3 +15,11 @@ export const saveScrollPosition =
       },
     });
   };
+
+export const removeChapterPositions = (novelId, chapterIds) => ({
+  type: REMOVE_CHAPTER_POSITIONS,
+  payload: {
+    novelId,
+    chapterIds,
+  },
+});
