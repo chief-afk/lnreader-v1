@@ -7,6 +7,9 @@ import { removeTracker, setTracker } from '../../redux/tracker/tracker.actions';
 import { useTheme } from '@hooks/useTheme';
 import { Appbar, List } from '@components';
 import { getTracker } from '../../services/Trackers/index';
+import { getString } from '@strings/translations';
+import { showToast } from '../../hooks/showToast';
+import { ANILIST_CLIENT_ID, MYANIMELIST_CLIENT_ID } from '@env';
 
 const TrackerScreen = ({ navigation }) => {
   const theme = useTheme();
@@ -39,6 +42,8 @@ const TrackerScreen = ({ navigation }) => {
             onPress={async () => {
               if (tracker) {
                 showModal();
+              } else if (!ANILIST_CLIENT_ID) {
+                showToast(getString('trackerScreen.aniListClientIdMissing'));
               } else {
                 const auth = await getTracker('AniList').authenticate();
                 dispatch(setTracker('AniList', { auth }));
@@ -52,6 +57,10 @@ const TrackerScreen = ({ navigation }) => {
             onPress={async () => {
               if (tracker) {
                 showModal();
+              } else if (!MYANIMELIST_CLIENT_ID) {
+                showToast(
+                  getString('trackerScreen.myAnimeListClientIdMissing'),
+                );
               } else {
                 const auth = await getTracker('MyAnimeList').authenticate();
                 dispatch(setTracker('MyAnimeList', { auth }));

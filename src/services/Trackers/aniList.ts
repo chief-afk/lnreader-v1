@@ -134,15 +134,21 @@ export const aniListTracker = createTracker('AniList', {
 export async function queryAniList(
   query: string,
   variables: any,
-  auth: Pick<AuthenticationResult, 'accessToken'>,
+  auth?: Pick<AuthenticationResult, 'accessToken'> | null,
 ) {
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  };
+  // The AniList GraphQL API rejects requests with a malformed Bearer token,
+  // so the header is only sent when the user is actually logged in.
+  if (auth?.accessToken) {
+    headers.Authorization = `Bearer ${auth.accessToken}`;
+  }
+
   const res = await fetch(apiEndpoint, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${auth.accessToken}`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       query,
       variables,

@@ -208,6 +208,8 @@ export interface StringMap {
   'globalSearch.pinnedSources': 'string';
   'advancedSettings.deleteReadChapters': 'string';
   'advancedSettings.deleteReadChaptersDialogTitle': 'string';
+  'trackerScreen.aniListClientIdMissing': 'string';
+  'trackerScreen.myAnimeListClientIdMissing': 'string';
   'date.calendar.sameDay': 'string';
   'date.calendar.nextDay': 'string';
   'date.calendar.lastDay': 'string';

@@ -76,7 +76,7 @@ const BrowseALScreen = ({ navigation, route }) => {
           search: onlyTop ? undefined : searchText,
           page,
         },
-        tracker.auth,
+        tracker?.auth,
       );
 
       const results = data.Page.media.map(m => {

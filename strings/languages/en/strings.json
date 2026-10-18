@@ -260,6 +260,10 @@
     "deleteReadChapters": "Delete read chapters",
     "deleteReadChaptersDialogTitle": "Are you sure? All chapters marked as read will be deleted."
   },
+  "trackerScreen": {
+    "aniListClientIdMissing": "AniList login needs an AniList API client id configured in the app build. See the README.",
+    "myAnimeListClientIdMissing": "MyAnimeList login needs a MyAnimeList API client id configured in the app build. See the README."
+  },
   "date": {
     "calendar": {
       "sameDay": "[Today]",

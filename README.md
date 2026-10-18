@@ -109,6 +109,18 @@ installed plugin, so install order does not matter; after an
 uninstall/reinstall cycle a plugin's old library entries can end up
 attached to a different plugin.
 
+## Trackers
+
+Browsing AniList or MyAnimeList from Discover works without any account.
+Syncing reading progress via More > Settings > Tracking needs API
+credentials: register your own app at
+[anilist.co/settings/developer](https://anilist.co/settings/developer)
+(redirect `lnreaderv1://`) or
+[myanimelist.net/panel/apiclient](https://myanimelist.net/panel/apiclient),
+then build the app with the client ids set - see `.env.example`. Without
+them, tracker login shows a hint instead of opening the service's login
+page.
+
 ---
 
 For official LNReader support, visit the
