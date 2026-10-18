@@ -1,15 +1,15 @@
 # LNReader v1
 
 Unofficial fork of LNReader that keeps the v1 app alive: same design,
-your data preserved, actively maintained. No support.
+your data preserved, actively maintained. No support will be provided for this.
 
 ## Download
 
-- **Latest 1.3.x** - v1 with plugin support (recommended):
+- **Latest 1.3.x** - v1 with plugin support (**recommended**):
   [releases](https://github.com/chief-afk/lnreader-v1/releases)
-- **1.2.x** - v1 without plugins:
+- **1.2.x** - original v1 (with stability updates), no plugins support:
   [v1.2.0](https://github.com/chief-afk/lnreader-v1/releases/tag/v1.2.0)
-- **Official app** - the v2 line, a rewrite and not this fork:
+- **Official app** - LNReader V2, official project (a rewrite):
   [LNReader/lnreader releases](https://github.com/LNReader/lnreader/releases)
 
 ## What this fork is
