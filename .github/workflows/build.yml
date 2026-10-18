@@ -26,6 +26,13 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Create .env (tracker client ids)
+        run: |
+          {
+            echo "ANILIST_CLIENT_ID=${{ secrets.ANILIST_CLIENT_ID }}"
+            echo "MYANIMELIST_CLIENT_ID=${{ secrets.MYANIMELIST_CLIENT_ID }}"
+          } > .env
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
