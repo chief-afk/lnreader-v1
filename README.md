@@ -3,6 +3,8 @@
 Unofficial fork of LNReader that keeps the v1 app alive: same design,
 your data preserved, actively maintained. No support will be provided for this.
 
+- **Note**: You can install this alongside the official LNReader app.
+
 ## Download
 
 - **Latest 1.3.x** - v1 with plugin support (**recommended**):
